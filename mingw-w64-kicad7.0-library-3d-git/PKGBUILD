@@ -1,0 +1,46 @@
+# Support libraries for KiCad
+
+# Based partly on https://archlinux.org/packages/extra/any/kicad-library/ and
+# https://github.com/stahta01/MINGW-packages/blob/master/mingw-w64-kicad-library/PKGBUILD
+
+_realname=kicad
+_basepkgver=7.0
+_basepkgname=${_realname}${_basepkgver}
+pkgbase=mingw-w64-${_realname}${_basepkgver}-library-3d-git
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-library-3d-git")
+pkgver=7.0.9
+pkgrel=1
+pkgdesc="3D model library for KiCad ${_basepkgver} (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'mingw32' 'clang32')
+url='https://www.kicad.org/libraries/'
+license=("Creative Commons CC-BY-SA 4.0 License")
+groups=("${MINGW_PACKAGE_PREFIX}-eda")
+makedepends=('cmake' 'make' 'git')
+options=('!strip')
+source=(kicad-packages3D-git::"git+https://gitlab.com/kicad/libraries/kicad-packages3D.git#tag=$pkgver")
+sha256sums=('SKIP')
+
+build() {
+  for _s in "packages3D"; do
+    msg2 "Build kicad-${_s}"
+    mkdir -p "${srcdir}/build-${_s}-${MSYSTEM}" && cd "${srcdir}/build-${_s}-${MSYSTEM}"
+
+    /usr/bin/cmake.exe \
+        -G"Unix Makefiles" \
+        -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
+        ../kicad-packages3D-git
+
+    /usr/bin/cmake.exe --build .
+  done
+}
+
+package() {
+  provides=(${MINGW_PACKAGE_PREFIX}-${_realname}-packages3D)
+  conflicts=(${MINGW_PACKAGE_PREFIX}-${_realname}-packages3D
+             ${MINGW_PACKAGE_PREFIX}-${_realname}-packages3D-git)
+  replaces=(${MINGW_PACKAGE_PREFIX}-${_realname}-packages3D-git)
+
+  cd "${srcdir}/build-packages3D-${MSYSTEM}"
+  DESTDIR="${pkgdir}" /usr/bin/cmake.exe --install .
+}
