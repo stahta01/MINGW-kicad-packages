@@ -1,0 +1,63 @@
+# Support libraries for KiCad
+
+# Based partly on https://archlinux.org/packages/extra/any/kicad-library/ and
+# https://github.com/stahta01/MINGW-packages/blob/master/mingw-w64-kicad-library/PKGBUILD
+
+PATH=/usr/local/bin:/usr/bin:/bin:/opt/bin
+MSYSTEM="MSYS"
+MINGW_COMMON_PREFIX="/mingw-common"
+MINGW_PACKAGE_PREFIX="mingw-common"
+
+_realname=kicad
+_basepkgver=6.0
+_basepkgname=${_realname}${_basepkgver}
+_sharefoldername=${_realname}${_basepkgver}
+pkgbase=mingw-w64-${_realname}${_basepkgver}-library
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-library")
+pkgver=${_basepkgver}.11
+pkgrel=1
+pkgdesc="Symbol, footprint and template libraries for KiCad ${_basepkgver} (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw-common')
+url='https://www.kicad.org/libraries/'
+license=("Creative Commons CC-BY-SA 4.0 License")
+groups=("${MINGW_PACKAGE_PREFIX}-eda")
+makedepends=('cmake' 'make')
+options=('!strip')
+source=("https://gitlab.com/kicad/libraries/kicad-footprints/-/archive/${pkgver}/kicad-footprints-${pkgver}.tar.bz2"
+        "https://gitlab.com/kicad/libraries/kicad-symbols/-/archive/${pkgver}/kicad-symbols-${pkgver}.tar.bz2"
+        "https://gitlab.com/kicad/libraries/kicad-templates/-/archive/${pkgver}/kicad-templates-${pkgver}.tar.bz2")
+sha256sums=('6229296fb1f7fcd64424230128abcee008eb92c2590da6b40718f0a66810b614'
+            'b4b28ef9449ebce2cbab0555173994b2af6c0157e546ba1308d680ad6fa4a0ca'
+            'a8de6c4653ad7ba711a21d4b081797202e4f4e9954dc6d9fdca3ce2f392448d9')
+
+build() {
+  for _s in "footprints" "symbols" "templates"; do
+    msg2 "Build kicad-${_s}"
+    mkdir -p "${srcdir}/build-${_s}-${MSYSTEM}" && cd "${srcdir}/build-${_s}-${MSYSTEM}"
+
+    /usr/bin/cmake.exe \
+        -G"Unix Makefiles" \
+        -DCMAKE_INSTALL_PREFIX="${MINGW_COMMON_PREFIX}" \
+        ../${_realname}-${_s}-${pkgver}
+
+    /usr/bin/cmake.exe --build .
+  done
+}
+
+package() {
+  provides=()
+  conflicts=(${MINGW_PACKAGE_PREFIX}-${_realname}-library-git)
+  replaces=(${MINGW_PACKAGE_PREFIX}-${_realname}-library-git)
+
+  cd "${srcdir}/build-footprints-${MSYSTEM}"
+  DESTDIR="${pkgdir}" /usr/bin/cmake.exe --install .
+
+  cd "${srcdir}/build-symbols-${MSYSTEM}"
+  DESTDIR="${pkgdir}" /usr/bin/cmake.exe --install .
+
+  cd "${srcdir}/build-templates-${MSYSTEM}"
+  DESTDIR="${pkgdir}" /usr/bin/cmake.exe --install .
+
+  cd "${pkgdir}${MINGW_COMMON_PREFIX}/share" && mv kicad ${_sharefoldername}
+}
