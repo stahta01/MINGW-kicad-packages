@@ -1,0 +1,28 @@
+From d519aae8b6a9721f65d479e4fcbabe091fcaa7a6 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Wed, 22 Nov 2023 08:01:46 -0500
+Subject: Under UCRT64, define JSON_SCHEMA_NO_REGEX 1
+
+---
+ thirdparty/json_schema_validator/json-validator.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/thirdparty/json_schema_validator/json-validator.cpp b/thirdparty/json_schema_validator/json-validator.cpp
+index 05d0a9503d..a2ec6c3e7a 100644
+--- a/thirdparty/json_schema_validator/json-validator.cpp
++++ b/thirdparty/json_schema_validator/json-validator.cpp
+@@ -23,6 +23,13 @@ using nlohmann::json_uri;
+ using nlohmann::json_schema::root_schema;
+ using namespace nlohmann::json_schema;
+ 
++#if defined(__MINGW32__) && defined(_UCRT)
++// MSys2 MinGW UCRT64 locks when using REGEX in this file.
++// Using Plugin Content Manager (PCM) triggers the lock up.
++	#undef JSON_SCHEMA_BOOST_REGEX
++	#define JSON_SCHEMA_NO_REGEX 1
++#endif
++
+ #ifdef JSON_SCHEMA_BOOST_REGEX
+ #	include <boost/regex.hpp>
+ #	define REGEX_NAMESPACE boost
+-- 
