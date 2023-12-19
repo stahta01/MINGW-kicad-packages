@@ -102,6 +102,7 @@ prepare() {
 }
 
 build() {
+  [[ -d build-${MSYSTEM} ]] && rm -rf build-${MSYSTEM}
   mkdir -p "${srcdir}"/build-${MSYSTEM} && cd "${srcdir}"/build-${MSYSTEM}
 
   declare -a _extra_config
