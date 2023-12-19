@@ -9,8 +9,8 @@ _basepkgname=${_realname}${_basepkgver}
 _wx_basever=3.2
 pkgbase=mingw-w64-${_realname}${_basepkgver}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}")
-pkgver=7.0.9
-pkgrel=2
+pkgver=${_basepkgver}.9
+pkgrel=3
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
 mingw_arch=('mingw64' 'ucrt64' 'clang64' 'mingw32' 'clang32')
@@ -32,7 +32,7 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-openssl"
   "${MINGW_PACKAGE_PREFIX}-freeglut"
   "${MINGW_PACKAGE_PREFIX}-zlib"
-  $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-opencascade")
+  "${MINGW_PACKAGE_PREFIX}-opencascade"
   "${MINGW_PACKAGE_PREFIX}-cairo"
   "${MINGW_COMMON_PACKAGE_PREFIX}-${_basepkgname}-library" # Really optional; but, kicad cannot do much without it.
 )
@@ -107,8 +107,10 @@ build() {
   declare -a _extra_config
   if check_option "debug" "n"; then
     _extra_config+=("-DCMAKE_BUILD_TYPE=Release")
+    _extra_config+=("-DKICAD_BUILD_QA_TESTS=OFF")
   else
     _extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
+    _extra_config+=("-DKICAD_BUILD_QA_TESTS=ON")
   fi
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=;DCMAKE_PREFIX_PATH=;DEFAULT_INSTALL_PATH=" \
@@ -122,7 +124,6 @@ build() {
       -DOCC_INCLUDE_DIR="${MINGW_PREFIX}"/include/opencascade \
       -DKICAD_SCRIPTING_WXPYTHON=ON \
       -DKICAD_BUILD_I18N=ON \
-      -DKICAD_BUILD_QA_TESTS=OFF \
       -DPYTHON_EXECUTABLE="${MINGW_PREFIX}"/bin/python.exe \
       -DPYTHON_INCLUDE_DIR=$("${MINGW_PREFIX}"/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
       -DPYTHON_ROOT_DIR="${MINGW_PREFIX}" \
