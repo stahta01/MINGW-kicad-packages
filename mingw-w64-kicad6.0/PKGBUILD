@@ -54,7 +54,6 @@ done
 optdepends+=("${MINGW_COMMON_PACKAGE_PREFIX}-${_basepkgname}-library-3d: for 3D model libraries")
 source=(
   "https://gitlab.com/kicad/code/kicad/-/archive/${pkgver}/kicad-${pkgver}.tar.bz2"
-  '001-Kicad-manager-build-the-PLUGIN_CONTENT_MANAGER-only-on-request.patch'
   '002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch'
   '003-ki-6.0-code-fixes-for-GNUC-CLANG.patch'
   '006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch'
@@ -63,7 +62,6 @@ source=(
   '015-ki-6.0-under-ucrt64-define-JSON_SCHEMA_NO_REGEX.patch'
 )
 sha256sums=('f2b7ad72942c7e154bebb06d4e6d9fd7ea765f679edafb25b059b387860fbe5d'
-            'a7c41a4f9e04926f0103dbe6702e42681ed1e59ceadca1ec116a8af081597a2a'
             '2924a86849c02aecd21cded0bd2069353fca33c3364f9b41f9bfdd80e19085cf'
             'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
             'e03dbb58409145c8fb54991d8259f14bc0ba6b21abca24f9b914ec354c9df89c'
@@ -82,9 +80,6 @@ apply_patch_with_msg() {
 
 prepare() {
   cd ${_realname}-${pkgver}
-  ## https://gitlab.com/kicad/code/kicad/-/commit/aa3e2988
-  #apply_patch_with_msg \
-    #001-Kicad-manager-build-the-PLUGIN_CONTENT_MANAGER-only-on-request.patch
 
   apply_patch_with_msg \
     002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch \
