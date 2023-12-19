@@ -1,0 +1,172 @@
+# Maintainer: Tim Stahlhut <stahta01@gmail.com>
+
+_realname=kicad
+_wx_basever=3.2
+_sourcedir=${_realname}-git
+pkgbase=mingw-w64-${_realname}-git
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git")
+pkgver=7.99.0.r3676.g2604854221
+pkgrel=1
+pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
+arch=(any)
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+url="https://www.kicad.org/"
+license=("GPLv3+")
+groups=("${MINGW_PACKAGE_PREFIX}-eda")
+options=()
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-boost"
+  "${MINGW_PACKAGE_PREFIX}-curl"
+  "${MINGW_PACKAGE_PREFIX}-glew"
+  "${MINGW_PACKAGE_PREFIX}-glm"
+  "${MINGW_PACKAGE_PREFIX}-ngspice"
+  "${MINGW_PACKAGE_PREFIX}-python"
+  "${MINGW_PACKAGE_PREFIX}-wxPython"
+  "${MINGW_PACKAGE_PREFIX}-wxmsw${_wx_basever}"
+  "${MINGW_PACKAGE_PREFIX}-openssl"
+  "${MINGW_PACKAGE_PREFIX}-freeglut"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+  $([[ ${MINGW_PACKAGE_PREFIX} != *-clang-aarch64* ]] && echo "${MINGW_PACKAGE_PREFIX}-opencascade")
+  "${MINGW_PACKAGE_PREFIX}-cairo"
+  "${MINGW_PACKAGE_PREFIX}-libgit2"
+)
+makedepends=(
+  'git' 'make' 'patch'
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-doxygen"
+  "${MINGW_PACKAGE_PREFIX}-pkg-config"
+  "${MINGW_PACKAGE_PREFIX}-swig"
+)
+# PCM means Plugin and Content Manager
+#_git_commit='0dea03654b55f558852a679dd849321801ce124a' # 7.99.0.r3607 # UCRT runs okay, except for PCM locking up.
+#_git_commit='2f89a66d8fe4fb24a391ebd36a6f1c43cb0731c0' # 7.99.0.r3437 # UCRT runs okay
+#_git_commit='9e48c0b6955e2690b76ec06dfa1f1e83d1ea1633' # 7.99.0.r3338 # UCRT runs okay; gave this message on shutdown "Error could not find repository at 'C:\msys64\ucrt64\share\kicad\demos\pic_programmer'"
+#_git_commit='b8a61719c3a7e93547aafd85942004f9a3224f09' # 7.99.0.r2489 # UCRT runs okay
+#_git_commit='5327b6878b949610713165d4db1b1be34270896e' # 7.99.0.r2339 # UCRT runs and locks up
+#_git_commit='f88148e4e8d5d3e676d6592c31b370559af0474c' # 7.99.0.r2190 # UCRT runs and displays okay and crashes on app exit
+#_git_commit='3b72cb3d088011c02cdde7f53ef74141cdbdab50' # 7.99.0.r2090 # UCRT runs and displays okay and crashes on app exit
+#_git_commit='f8fcf3852fe72e1d7c0e5b902a250ba5a8977c68' # 7.99.0.r1936 # UCRT runs and displays okay and crashes on app exit
+#_git_commit='df11673f8644978bc8962406ec72e54839b54bfd' # 7.99.0.r1935 # UCRT runs and displays okay and crashes on app exit
+#_git_commit='aa3e2988905fd893c6c85d10d65533904557a5bd' # 7.99.0.r1934 # UCRT runs and displays okay and crashes on app exit
+#_git_commit='da1e82d57e337c75085070604111e5072d7b4349' # 7.99.0.r1933 # FIXED UCRT runs and displays okay and crashes on app exit
+#_git_commit='3a4f3cb0b8ef7d9c077932d970bff9878e4e0ca6' # 7.99.0.r1925 # UCRT runs and displays splash screen and then locks up
+#_git_commit='b938064e29db51fdb8f86a586502afbaec034926' # 7.99.0.r1751 # UCRT runs and displays splash screen and then locks up
+#_git_commit='30f20a694da185d898b5221eabda4885304e9627' # 7.99.0.r1673 # UCRT runs and displays splash screen and then locks up
+#_git_commit='69580313d84265b6021ce54ec9a1f0394ca3cafa' # 7.99.0.r1500 # FIXED UCRT runs and displays okay, PCM locks, and crashes on app exit
+#_git_commit='05fef51d815944f27d803a54abea1a0a3f513999' # 7.99.0.r1224 # UCRT runs and locks up
+#_git_commit='76e224e0af755c9491f7c42b44e96b7008fd0b68' # 7.99.0.r0    # UCRT runs and locks up
+source=(
+  '002-ki-7.0-cmake-fixes-for-MINGW-CLANG.patch'
+  '003-ki-6.0-code-fixes-for-GNUC-CLANG.patch'
+  '006-ki-7.99-rewrite-kiwin32_rc_for_clang.patch'
+  '007-ki-7.99-manifest-remove-win10-11-manifest-support.patch'
+  '013-ki-7.99-clang-fmt-Remove-an-ostream-hack-incompatible-with-libc-17.patch'
+  '015-under-ucrt64-define-JSON_SCHEMA_NO_REGEX-1.patch'
+  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git"
+  #"${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#commit=${_git_commit}"
+)
+sha256sums=('4276daa4de876f2a8f990c3d2177a2ccf8e7c647567764b9ad1a3fae01740275'
+            'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
+            'ae205637669fd2a6fac080b2614b44c42054eb52bd5a4cbe39366b92878f7144'
+            'bcaedbd7ffb328e4030fb2353fac875d04b1554c8b4ff4bf9539dcfc2ce33304'
+            'f76c30ea94a7a6747bb5b3177beedfd40e9f3912de5248e41d86e7b868375438'
+            '263632b211ef9646e49d3e7083bbe4cefe0c7064db7caac248aecae5541cc544'
+            'SKIP')
+# =========================================== #
+# Helper macros to help make tasks easier     #
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    if patch --dry-run -Rbp1 -i "${srcdir}/${_patch}" > /dev/null 2>&1 ; then
+      msg2 "Skipping ${_patch} because it likely was already applied"
+    else
+      msg2 "Applying ${_patch}"
+      patch -Nbp1 -i "${srcdir}/${_patch}"
+    fi
+  done
+}
+
+pkgver() {
+  cd ${srcdir}/${_sourcedir}
+  ( set -o pipefail
+    _tag=$( head -n 200 cmake/KiCadVersion.cmake | grep 'KICAD_SEMANTIC_VERSION "' | sed -e 's/KICAD_SEMANTIC_VERSION//' | sed -e 's/-unknown//' | sed -e 's/set//' | tr -d '() "' )
+    _version=$( echo ${_tag} | tr -d '-' )
+    printf "%s.r%s.g%s" "${_version}" $(git rev-list --count ${_tag}..HEAD) $(git rev-parse --short HEAD)
+  )
+}
+
+prepare() {
+  cd ${srcdir}/${_sourcedir}
+
+  # The next four patch files are needed to get CLANG64/32 to build
+  patch -Np1 -i "${srcdir}"/002-ki-7.0-cmake-fixes-for-MINGW-CLANG.patch
+  patch -Np1 -i "${srcdir}"/003-ki-6.0-code-fixes-for-GNUC-CLANG.patch
+  patch -Np1 -i "${srcdir}"/006-ki-7.99-rewrite-kiwin32_rc_for_clang.patch
+  patch -Np1 -i "${srcdir}"/013-ki-7.99-clang-fmt-Remove-an-ostream-hack-incompatible-with-libc-17.patch
+  # This patch allows me to test program using my old Intel GPU driver under win10
+  patch -Np1 -i "${srcdir}"/007-ki-7.99-manifest-remove-win10-11-manifest-support.patch
+  # Hack to work around UCRT64 PCM lockup
+  patch -Np1 -i "${srcdir}"/015-under-ucrt64-define-JSON_SCHEMA_NO_REGEX-1.patch
+}
+
+build() {
+  cd "${srcdir}"
+  msg2 "Build kicad"
+  [[ -d build-${MSYSTEM} ]] && rm -rf build-${MSYSTEM}
+  mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
+
+  local -a extra_config
+  if check_option "debug" "y"; then
+    extra_config+=( -DCMAKE_BUILD_TYPE=Debug )
+  else
+    extra_config+=( -DCMAKE_BUILD_TYPE=Release )
+  fi
+
+  if [[ ${MINGW_PACKAGE_PREFIX} != *-clang-aarch64* ]]; then
+    extra_config+=( -DOCC_INCLUDE_DIR=${MINGW_PREFIX}/include/opencascade )
+  fi
+
+  #extra_config+=( -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON )
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=;DCMAKE_PREFIX_PATH=;DEFAULT_INSTALL_PATH=" \
+  ${MINGW_PREFIX}/bin/cmake.exe \
+    -G "MSYS Makefiles" \
+    -DCMAKE_PREFIX_PATH=${MINGW_PREFIX} \
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+    "${extra_config[@]}" \
+    -DDEFAULT_INSTALL_PATH=${MINGW_PREFIX} \
+    -DwxWidgets_CONFIG_EXECUTABLE=${MINGW_PREFIX}/bin/wx-config-${_wx_basever} \
+    -DKICAD_USE_OCC="$( [[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] && echo "OFF" || echo "ON" )" \
+    -DKICAD_SCRIPTING_WXPYTHON=ON \
+    -DKICAD_SCRIPTING=ON \
+    -DKICAD_SCRIPTING_PYTHON3=ON \
+    -DKICAD_BUILD_QA_TESTS=OFF \
+    -DPYTHON_EXECUTABLE=${MINGW_PREFIX}/bin/python.exe \
+    -DPYTHON_INCLUDE_DIR=$(${MINGW_PREFIX}/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
+    -DPYTHON_ROOT_DIR=${MINGW_PREFIX} \
+    -DKICAD_BUILD_I18N=ON \
+    ../${_sourcedir}
+
+  cd ${srcdir}/build-${MSYSTEM}
+  make VERBOSE=1 || make VERBOSE=1 --jobs=1
+}
+
+_doc=("ca" "de" "en" "es" "fr" "id" "it" "ja" "nl" "pl" "ru" "zh")
+_sub=("footprints" "symbols" "templates" "packages3D")
+
+for _doclang in ${_doc[@]}; do _doc_pkg+=("\"${MINGW_PACKAGE_PREFIX}-${_realname}-doc-${_doclang}: Documentation for KiCad (mingw-w64)\""); done
+for _feature in ${_sub[@]}; do _sub_pkg+=("\"${MINGW_PACKAGE_PREFIX}-${_realname}-${_feature}\""); done
+
+optdepends=()
+
+eval "package_${MINGW_PACKAGE_PREFIX}-${_realname}-git() {
+
+  msg2 \"Package kicad\"
+  optdepends+=(${_doc_pkg[@]} ${_sub_pkg[@]})
+  conflicts=(${MINGW_PACKAGE_PREFIX}-${_realname})
+  provides=(${MINGW_PACKAGE_PREFIX}-${_realname})
+
+  cd \${srcdir}/build-${MSYSTEM}
+  make DESTDIR=\${pkgdir} install
+}"
