@@ -10,7 +10,7 @@ _wx_basever=3.2
 pkgbase=mingw-w64-${_realname}${_basepkgver}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}")
 pkgver=${_basepkgver}.11
-pkgrel=1
+pkgrel=2
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
 mingw_arch=('mingw64' 'ucrt64' 'clang64' 'mingw32' 'clang32')
@@ -60,7 +60,7 @@ source=(
   '006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch'
   '007-ki-6.0-manifest-remove-win10-11-manifest-support.patch'
   '012-ki-6.0-Set-StockEDALibraryPath-to-share-kicad6.0.patch'
-  '015-under-ucrt64-define-JSON_SCHEMA_NO_REGEX-1.patch'
+  '015-ki-6.0-under-ucrt64-define-JSON_SCHEMA_NO_REGEX.patch'
 )
 sha256sums=('f2b7ad72942c7e154bebb06d4e6d9fd7ea765f679edafb25b059b387860fbe5d'
             'a7c41a4f9e04926f0103dbe6702e42681ed1e59ceadca1ec116a8af081597a2a'
@@ -98,7 +98,7 @@ prepare() {
   # 015 Hack to work around UCRT64 locking when PCM is started.
   apply_patch_with_msg \
     012-ki-6.0-Set-StockEDALibraryPath-to-share-kicad6.0.patch \
-    015-under-ucrt64-define-JSON_SCHEMA_NO_REGEX-1.patch
+    015-ki-6.0-under-ucrt64-define-JSON_SCHEMA_NO_REGEX.patch
 }
 
 build() {
