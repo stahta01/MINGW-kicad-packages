@@ -25,6 +25,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-rapidjson")
 license=('spdx:LGPL-2.1-or-later WITH OCCT-exception-1.0')
 url='https://dev.opencascade.org'
+#noextract=(opencascade-${pkgver}.tgz) # For patch testing ONLY
 msys2_repository_url="https://git.dev.opencascade.org/gitweb/?p=occt.git"
 source=("opencascade-${pkgver}.tgz::https://git.dev.opencascade.org/gitweb/?p=occt.git;a=snapshot;h=refs/tags/${_pkgver2};sf=tgz"
         "0001-fix-compile-openvr.patch"
@@ -70,17 +71,26 @@ sha256sums=('2fb23c8d67a7b72061b4f7a6875861e17d412d524527b2a96151ead1d9cfa2c1'
             '6c1e3cfebecc398424d94de43d501d2718800bf101f90a156c086fad4ba042e0'
             'daaa4243d6f88a32a3ff920af84d8add11a2582ba10cf720574871eb3503e179')
 
-# Helper macros to help make tasks easier #
+# =========================================== #
+# Helper macros to help make tasks easier     #
 apply_patch_with_msg() {
-  for _fname in "$@"
+  for _patch in "$@"
   do
-    msg2 "Applying ${_fname}"
-    patch -Nbp1 -i "${srcdir}"/${_fname}
+    if patch --dry-run -Rbp1 -i "${srcdir}/${_patch}" > /dev/null 2>&1 ; then
+      msg2 "Skipping ${_patch} because it likely was already applied"
+    else
+      msg2 "Applying ${_patch}"
+      patch -Nbp1 -i "${srcdir}/${_patch}"
+    fi
   done
 }
 
 prepare() {
   cd "${srcdir}"/occt-${_pkgver2}
+
+  # Remove files created by 0013-ExpToCasExe-Fix-building-static.patch
+  # rm -f src/ExpToCasExe/EXTERNLIB_STATIC
+
   apply_patch_with_msg \
     0001-fix-compile-openvr.patch \
     0002-GeomPlate_BuildAveragePlane-BasePlan-Don-t-set-yvect.patch \
