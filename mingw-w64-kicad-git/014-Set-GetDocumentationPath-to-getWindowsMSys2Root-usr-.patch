@@ -1,0 +1,24 @@
+From b7ad3d68c728388ddb886f939315c49eba1740ee Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Wed, 8 Nov 2023 11:36:15 -0500
+Subject: Set GetDocumentationPath to getWindowsMSys2Root() +
+ "usr/share/doc/kicad7.0"
+
+---
+ common/paths.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common/paths.cpp b/common/paths.cpp
+index 4b9bccef45..d27970caec 100644
+--- a/common/paths.cpp
++++ b/common/paths.cpp
+@@ -364,7 +364,7 @@ wxString PATHS::GetDocumentationPath()
+ #if defined( __WXMAC__ )
+     path = GetOSXKicadDataDir();
+ #elif defined( __WXMSW__ )
+-    path = getWindowsKiCadRoot() + wxT( "share/doc/kicad" );
++    path = getWindowsMSys2Root() + "usr/share/doc/kicad7.0";
+ #else
+     path = wxString::FromUTF8Unchecked( KICAD_DOCS );
+ #endif
+-- 

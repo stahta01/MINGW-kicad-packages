@@ -1,0 +1,22 @@
+From b95b07e54dffa13096f747c049b600bbfe3c5913 Mon Sep 17 00:00:00 2001
+From: Mark Roszko <mark.roszko@gmail.com>
+Date: Sun, 30 Jul 2023 21:20:04 +0000
+Subject: Turn off the FMT_INSTALL opt
+
+---
+ thirdparty/CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/thirdparty/CMakeLists.txt b/thirdparty/CMakeLists.txt
+index 67c5309d91..a55452a740 100644
+--- a/thirdparty/CMakeLists.txt
++++ b/thirdparty/CMakeLists.txt
+@@ -30,6 +30,7 @@ add_subdirectory( clipper2 )
+ add_subdirectory( compoundfilereader )
+ add_subdirectory( delaunator )
+ add_subdirectory( dxflib_qcad )
++set( FMT_INSTALL OFF )
+ add_subdirectory( fmt )
+ add_subdirectory( gzip-hpp )
+ add_subdirectory( lemon )
+-- 

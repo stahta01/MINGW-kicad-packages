@@ -1,0 +1,27 @@
+From 199098910adc749ea82924aec8cfa796a4020adb Mon Sep 17 00:00:00 2001
+From: Ian McInerney <ian.s.mcinerney@ieee.org>
+Date: Wed, 2 Aug 2023 22:58:32 +0100
+Subject: Disable shared library building for thirdparty libraries
+
+Specifically, the fmt CMake has defaulted to not specifying the library
+type to build, so without BUILD_SHARED_LIBS=OFF set, it might try to
+build it as a shared library, which we don't want.
+---
+ thirdparty/CMakeLists.txt | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/thirdparty/CMakeLists.txt b/thirdparty/CMakeLists.txt
+index a55452a740..0eb2a66cee 100644
+--- a/thirdparty/CMakeLists.txt
++++ b/thirdparty/CMakeLists.txt
+@@ -21,6 +21,9 @@
+ #  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ #
+ 
++# Disable shared library building for all thirdparty libraries
++set( BUILD_SHARED_LIBS OFF )
++
+ # Note: The glew folder isn't added here because it is added inside the main CMakeLists.txt
+ 
+ set( ARGPARSE_INSTALL OFF )
+-- 
