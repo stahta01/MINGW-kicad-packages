@@ -1,0 +1,56 @@
+From 27a1678b881b3bd5ef86e863465b19956b012774 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Fri, 3 Nov 2023 23:06:59 -0400
+Subject: Set StockEDALibraryPath to getWindowsMSys2Root() +
+ "mingw-common/share/kicad7.0"
+
+---
+ common/paths.cpp | 10 +++++++++-
+ include/paths.h  |  5 +++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/common/paths.cpp b/common/paths.cpp
+index efe0604e41..7dcc9d9f37 100644
+--- a/common/paths.cpp
++++ b/common/paths.cpp
+@@ -202,7 +202,7 @@ wxString PATHS::GetStockEDALibraryPath()
+ #if defined( __WXMAC__ )
+     path = GetOSXKicadMachineDataDir();
+ #elif defined( __WXMSW__ )
+-    path = GetStockDataPath( false );
++    path = getWindowsMSys2Root() + "mingw-common/share/kicad7.0";
+ #else
+     path = wxString::FromUTF8Unchecked( KICAD_LIBRARY_DATA );
+ #endif
+@@ -482,6 +482,14 @@ wxString PATHS::GetOSXKicadDataDir()
+ 
+ 
+ #ifdef __WXMSW__
++wxString PATHS::getWindowsMSys2Root()
++{
++    wxFileName root( GetExecutablePath() +  "/../../" );
++    root.MakeAbsolute();
++
++    return root.GetPathWithSep();
++}
++
+ wxString PATHS::GetWindowsFontConfigDir()
+ {
+     wxFileName fn;
+diff --git a/include/paths.h b/include/paths.h
+index 05d12707b1..a3c0d318e3 100644
+--- a/include/paths.h
++++ b/include/paths.h
+@@ -241,6 +241,11 @@ private:
+      * This retrieves that root for usage in other methods
+      */
+     static wxString getWindowsKiCadRoot();
++    /**
++     * Gets the root of the MSys2 install on Windows specifically.
++     * This retrieves that root for usage in other methods
++     */
++    static wxString getWindowsMSys2Root();
+ #endif
+ };
+ 
+-- 

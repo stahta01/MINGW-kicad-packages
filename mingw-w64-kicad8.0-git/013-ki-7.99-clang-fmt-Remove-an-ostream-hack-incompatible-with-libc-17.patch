@@ -1,0 +1,59 @@
+From 179f94cdac7b726099a0d4869993aa9b84826d81 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sun, 5 Nov 2023 03:27:06 -0500
+Subject: Remove an ostream hack incompatible with libc++ 17
+
+Based on upstream fmt changes done by Victor Zverovich and Christoph Reiter.
+---
+ thirdparty/fmt/include/fmt/ostream.h | 9 ---------
+ thirdparty/fmt/src/fmt.cc            | 2 --
+ 2 files changed, 11 deletions(-)
+
+diff --git a/thirdparty/fmt/include/fmt/ostream.h b/thirdparty/fmt/include/fmt/ostream.h
+index a112fe7ba9..5eb9f66dd4 100644
+--- a/thirdparty/fmt/include/fmt/ostream.h
++++ b/thirdparty/fmt/include/fmt/ostream.h
+@@ -13,8 +13,6 @@
+ #if defined(_WIN32) && defined(__GLIBCXX__)
+ #  include <ext/stdio_filebuf.h>
+ #  include <ext/stdio_sync_filebuf.h>
+-#elif defined(_WIN32) && defined(_LIBCPP_VERSION)
+-#  include <__std_stream>
+ #endif
+ 
+ #include "format.h"
+@@ -37,10 +35,6 @@ class file_access {
+ template class file_access<file_access_tag, std::filebuf,
+                            &std::filebuf::_Myfile>;
+ auto get_file(std::filebuf&) -> FILE*;
+-#elif defined(_WIN32) && defined(_LIBCPP_VERSION)
+-template class file_access<file_access_tag, std::__stdoutbuf<char>,
+-                           &std::__stdoutbuf<char>::__file_>;
+-auto get_file(std::__stdoutbuf<char>&) -> FILE*;
+ #endif
+ 
+ inline bool write_ostream_unicode(std::ostream& os, fmt::string_view data) {
+@@ -57,9 +51,6 @@ inline bool write_ostream_unicode(std::ostream& os, fmt::string_view data) {
+   else
+     return false;
+   if (c_file) return write_console(c_file, data);
+-#elif defined(_WIN32) && defined(_LIBCPP_VERSION)
+-  if (auto* buf = dynamic_cast<std::__stdoutbuf<char>*>(os.rdbuf()))
+-    if (FILE* f = get_file(*buf)) return write_console(f, data);
+ #else
+   ignore_unused(os, data);
+ #endif
+diff --git a/thirdparty/fmt/src/fmt.cc b/thirdparty/fmt/src/fmt.cc
+index a02167c659..6638bb4a7d 100644
+--- a/thirdparty/fmt/src/fmt.cc
++++ b/thirdparty/fmt/src/fmt.cc
+@@ -63,8 +63,6 @@ module;
+ #  if defined(__GLIBCXX__)
+ #    include <ext/stdio_filebuf.h>
+ #    include <ext/stdio_sync_filebuf.h>
+-#  elif defined(_LIBCPP_VERSION)
+-#    include <__std_stream>
+ #  endif
+ #  define WIN32_LEAN_AND_MEAN
+ #  include <windows.h>
+-- 
