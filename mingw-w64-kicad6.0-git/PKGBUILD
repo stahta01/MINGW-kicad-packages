@@ -1,0 +1,176 @@
+# Maintainer: Tim Stahlhut
+
+MINGW_COMMON_PACKAGE_PREFIX="mingw-common"
+
+_basepkgver=6.0
+_realname=kicad
+_basepkgname=${_realname}${_basepkgver}
+_wx_basever=3.2
+_sourcedir=${_realname}-git
+pkgbase=mingw-w64-${_realname}${_basepkgver}-git
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-git")
+pkgver=6.0.11.r7.g2bc8c0ace5
+pkgrel=1
+pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
+arch=(any)
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+url="https://www.kicad.org/"
+license=("GPLv3+")
+groups=("${MINGW_PACKAGE_PREFIX}-eda")
+options=('!strip' '!debug')
+conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}" "${MINGW_PACKAGE_PREFIX}-${_realname}-git")
+provides=("${MINGW_PACKAGE_PREFIX}-${_realname}" "${MINGW_PACKAGE_PREFIX}-${_realname}-git") 
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-boost"
+  "${MINGW_PACKAGE_PREFIX}-curl"
+  "${MINGW_PACKAGE_PREFIX}-glew"
+  "${MINGW_PACKAGE_PREFIX}-glm"
+  $([[ "$MSYSTEM_CARCH" != "i686" ]] && echo "${MINGW_PACKAGE_PREFIX}-ngspice")
+  "${MINGW_PACKAGE_PREFIX}-python"
+  $([[ "$MSYSTEM_CARCH" != "i686" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxPython")
+  "${MINGW_PACKAGE_PREFIX}-wxwidgets${_wx_basever}-msw-libs"
+  "${MINGW_PACKAGE_PREFIX}-openssl"
+  "${MINGW_PACKAGE_PREFIX}-freeglut"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+  "${MINGW_PACKAGE_PREFIX}-opencascade"
+  "${MINGW_PACKAGE_PREFIX}-cairo"
+  "${MINGW_COMMON_PACKAGE_PREFIX}-${_basepkgname}-library" # Really optional; but, kicad cannot do much without it.
+)
+makedepends=(
+  'git' 'make' 'patch'
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-doxygen"
+  "${MINGW_PACKAGE_PREFIX}-pkg-config"
+  "${MINGW_PACKAGE_PREFIX}-swig"
+  "${MINGW_PACKAGE_PREFIX}-wxwidgets${_wx_basever}-msw"
+)
+optdepends=()
+_doc=("ca" "de" "en" "es" "fr" "id" "it" "ja" "nl" "pl" "ru" "zh")
+for _doclang in ${_doc[@]}; do
+  optdepends+=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-doc-${_doclang}: for documentation (${_doclang})");
+done
+optdepends+=("${MINGW_COMMON_PACKAGE_PREFIX}-${_basepkgname}-library-3d: for 3D model libraries")
+source=(
+  '002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch'
+  '003-ki-6.0-code-fixes-for-GNUC-CLANG.patch'
+  '006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch'
+  '007-ki-6.0-manifest-remove-win10-11-manifest-support.patch'
+  '012-ki-6.0-Set-StockEDALibraryPath-to-share-kicad6.0.patch'
+#  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#commit=${_git_commit}"
+  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#branch=${_basepkgver}"
+#  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#tag=6.0.11"
+)
+sha256sums=('2924a86849c02aecd21cded0bd2069353fca33c3364f9b41f9bfdd80e19085cf'
+            'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
+            'e03dbb58409145c8fb54991d8259f14bc0ba6b21abca24f9b914ec354c9df89c'
+            '550397b8d2ba66b924933020e409e868d3e4b2352a235f329798bc631b9fd28f'
+            'e9d62ba01c092f9b535ff75a47bcc130b47069fe0713683cfe6bab4ad24427e5'
+            'SKIP')
+_doc=("ca" "de" "en" "es" "fr" "id" "it" "ja" "nl" "pl" "ru" "zh")
+
+# =========================================== #
+# Helper macros to help make tasks easier     #
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    if patch --dry-run -Rbp1 -i "${srcdir}/${_patch}" > /dev/null 2>&1 ; then
+      msg2 "Skipping ${_patch} because it likely was already applied"
+    else
+      msg2 "Applying ${_patch}"
+      patch -Nbp1 -i "${srcdir}/${_patch}"
+    fi
+  done
+}
+
+pkgver() {
+  cd ${srcdir}/${_sourcedir}
+  ( set -o pipefail
+    _version1=$( head -n 200 CMakeModules/KiCadVersion.cmake | grep 'KICAD_SEMANTIC_VERSION "' | sed -e 's/KICAD_SEMANTIC_VERSION//' | sed -e 's/-unknown//' | sed -e 's/set//' | tr -d '() "' )
+    _version2=$( echo ${_version1} | tr -d '-' )
+    _revcount1=$(git rev-list --count $(git log -1 --format=%H -- CMakeModules/KiCadVersion.cmake)..HEAD)
+    _revcount2=$(( _revcount1 + 1 ))
+    printf "%s.r%s.g%s" "${_version2}" ${_revcount2} $(git rev-parse --short HEAD)
+  )
+}
+
+prepare() {
+  cd ${srcdir}/${_sourcedir}
+
+  apply_patch_with_msg \
+    002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch \
+    003-ki-6.0-code-fixes-for-GNUC-CLANG.patch \
+    006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch
+
+  # This patch allows me to test view 3D program using my old Intel GPU driver under win10
+  apply_patch_with_msg 007-ki-6.0-manifest-remove-win10-11-manifest-support.patch
+
+  # 012 Change StockEDALibraryPath to use MINGW_COMMON_PACKAGE_PREFIX packages
+  apply_patch_with_msg \
+    012-ki-6.0-Set-StockEDALibraryPath-to-share-kicad6.0.patch
+}
+
+build() {
+  cd "${srcdir}"
+  msg2 "Build kicad"
+  [[ -d build-${MSYSTEM} ]] && rm -rf build-${MSYSTEM}
+  mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
+
+  local -a extra_config
+  if check_option "debug" "y"; then
+    extra_config+=( -DCMAKE_BUILD_TYPE=Debug )
+  else
+    extra_config+=( -DCMAKE_BUILD_TYPE=Release )
+  fi
+
+  if [[ ${MINGW_PACKAGE_PREFIX} != *-clang-aarch64* ]]; then
+    extra_config+=( -DOCC_INCLUDE_DIR=${MINGW_PREFIX}/include/opencascade )
+  fi
+
+  if [[ "$MSYSTEM_CARCH" == "i686" ]]; then
+    extra_config+=( -DKICAD_SPICE=OFF )
+    extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=OFF )
+  else
+    extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=ON )
+  fi
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=;DCMAKE_PREFIX_PATH=;DEFAULT_INSTALL_PATH=" \
+  ${MINGW_PREFIX}/bin/cmake.exe \
+    -G "MSYS Makefiles" \
+    -DCMAKE_PREFIX_PATH=${MINGW_PREFIX} \
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+    "${extra_config[@]}" \
+    -DDEFAULT_INSTALL_PATH=${MINGW_PREFIX} \
+    -DwxWidgets_CONFIG_EXECUTABLE=${MINGW_PREFIX}/bin/wx-config-${_wx_basever} \
+    -DKICAD_USE_OCC="$( [[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] && echo "OFF" || echo "ON" )" \
+    -DKICAD_SCRIPTING=ON \
+    -DKICAD_SCRIPTING_PYTHON3=ON \
+    -DKICAD_BUILD_QA_TESTS=OFF \
+    -DPYTHON_EXECUTABLE=${MINGW_PREFIX}/bin/python.exe \
+    -DPYTHON_INCLUDE_DIR=$(${MINGW_PREFIX}/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
+    -DPYTHON_ROOT_DIR=${MINGW_PREFIX} \
+    -DKICAD_BUILD_I18N=ON \
+    ../${_sourcedir}
+
+  cd ${srcdir}/build-${MSYSTEM}
+  make || make VERBOSE=1 --jobs=1
+}
+
+package_kicad6.0-git() {
+  cd "${srcdir}/build-${MSYSTEM}"
+  DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install . # --parallel 1 --verbose
+
+  install -Dm644 "${srcdir}/${_sourcedir}/LICENSE.README" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.README"
+  install -Dm644 "${srcdir}/${_sourcedir}/LICENSE.GPLv3" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.GPLv3"
+}
+
+# template start; name=mingw-w64-splitpkg-wrappers; version=1.0;
+# vim: set ft=bash :
+
+# generate wrappers
+for _name in "${pkgname[@]}"; do
+  _short="package_${_name#${MINGW_PACKAGE_PREFIX}-}"
+  _func="$(declare -f "${_short}")"
+  eval "${_func/#${_short}/package_${_name}}"
+done
+# template end;
