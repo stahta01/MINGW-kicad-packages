@@ -1,7 +1,5 @@
-# Support libraries for KiCad
-
 # Based partly on https://archlinux.org/packages/extra/any/kicad-library/ and
-# https://github.com/stahta01/MINGW-packages/blob/master/mingw-w64-kicad-library/PKGBUILD
+# https://github.com/msys2/MINGW-packages/blob/master/mingw-w64-kicad-library/PKGBUILD
 
 PATH=/usr/local/bin:/usr/bin:/bin:/opt/bin
 MSYSTEM="MSYS"
@@ -14,9 +12,9 @@ _basepkgname=${_realname}${_basepkgver}
 _sharefoldername=${_realname}${_basepkgver}
 pkgbase=mingw-w64-${_realname}${_basepkgver}-library-3d-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-library-3d-git")
-pkgver=7.0.9
-pkgrel=2
-pkgdesc="3D model library for KiCad ${_basepkgver} (mingw-w64)"
+pkgver=7.0.11
+pkgrel=1
+pkgdesc="3D model library for KiCad ${_basepkgver} (mingw-common)"
 arch=('any')
 mingw_arch=('mingw-common')
 url='https://www.kicad.org/libraries/'
