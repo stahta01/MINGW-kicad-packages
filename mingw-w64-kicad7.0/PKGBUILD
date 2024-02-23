@@ -1,6 +1,8 @@
 # Maintainer:  Tim Stahlhut
 # Contributor: Alexey Pavlov
 
+# NOTE: 32 bit packages are currently not building
+
 MINGW_COMMON_PACKAGE_PREFIX="mingw-common"
 
 _realname=kicad
@@ -9,8 +11,8 @@ _basepkgname=${_realname}${_basepkgver}
 _wx_basever=3.2
 pkgbase=mingw-w64-${_realname}${_basepkgver}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}")
-pkgver=7.0.9
-pkgrel=2
+pkgver=${_basepkgver}.11
+pkgrel=1
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
 mingw_arch=('mingw64' 'ucrt64' 'clang64' 'mingw32' 'clang32')
@@ -25,14 +27,14 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-curl"
   "${MINGW_PACKAGE_PREFIX}-glew"
   "${MINGW_PACKAGE_PREFIX}-glm"
-  "${MINGW_PACKAGE_PREFIX}-ngspice"
+  $([[ "$MSYSTEM_CARCH" != "i686" ]] && echo "${MINGW_PACKAGE_PREFIX}-ngspice")
   "${MINGW_PACKAGE_PREFIX}-python"
-  "${MINGW_PACKAGE_PREFIX}-wxPython"
+  $([[ "$MSYSTEM_CARCH" != "i686" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxPython")
   "${MINGW_PACKAGE_PREFIX}-wxwidgets${_wx_basever}-msw-libs"
   "${MINGW_PACKAGE_PREFIX}-openssl"
   "${MINGW_PACKAGE_PREFIX}-freeglut"
   "${MINGW_PACKAGE_PREFIX}-zlib"
-  $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-opencascade")
+  "${MINGW_PACKAGE_PREFIX}-opencascade"
   "${MINGW_PACKAGE_PREFIX}-cairo"
   "${MINGW_COMMON_PACKAGE_PREFIX}-${_basepkgname}-library" # Really optional; but, kicad cannot do much without it.
 )
@@ -62,7 +64,7 @@ source=(
   '012-ki-7.0-Set-StockEDALibraryPath-to-share-kicad7.0.patch'
   '015-under-ucrt64-define-JSON_SCHEMA_NO_REGEX-1.patch'
 )
-sha256sums=('45322e7495cbf0b6bba70b8fb8b58fdafa408d4d8473209fd1c5e8bad5a818f7'
+sha256sums=('24feb0747ee8d767c903fac5254c314a5012f4aee7016e961da845765764cf73'
             'a7c41a4f9e04926f0103dbe6702e42681ed1e59ceadca1ec116a8af081597a2a'
             '2924a86849c02aecd21cded0bd2069353fca33c3364f9b41f9bfdd80e19085cf'
             'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
@@ -96,33 +98,42 @@ prepare() {
 
   # 012 Change StockEDALibraryPath to use MINGW_COMMON_PACKAGE_PREFIX packages
   # 015 Hack to work around UCRT64 locking when PCM is started.
+  # 015 also breaks CLANG builds use of PCM
   apply_patch_with_msg \
-    012-ki-7.0-Set-StockEDALibraryPath-to-share-kicad7.0.patch \
-    015-under-ucrt64-define-JSON_SCHEMA_NO_REGEX-1.patch
+    012-ki-7.0-Set-StockEDALibraryPath-to-share-kicad7.0.patch # \
+    #015-under-ucrt64-define-JSON_SCHEMA_NO_REGEX-1.patch
 }
 
 build() {
+  [[ -d build-${MSYSTEM} ]] && rm -rf build-${MSYSTEM}
   mkdir -p "${srcdir}"/build-${MSYSTEM} && cd "${srcdir}"/build-${MSYSTEM}
 
   declare -a _extra_config
   if check_option "debug" "n"; then
     _extra_config+=("-DCMAKE_BUILD_TYPE=Release")
+    _extra_config+=("-DKICAD_BUILD_QA_TESTS=OFF")
   else
     _extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
+    _extra_config+=("-DKICAD_BUILD_QA_TESTS=ON")
+  fi
+
+  if [[ "$MSYSTEM_CARCH" == "i686" ]]; then
+    extra_config+=( -DKICAD_SPICE=OFF )
+    extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=OFF )
+  else
+    extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=ON )
   fi
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=;DCMAKE_PREFIX_PATH=;DEFAULT_INSTALL_PATH=" \
-    "${MINGW_PREFIX}"/bin/cmake.exe -Wno-dev \
-      -GNinja \
+    "${MINGW_PREFIX}"/bin/cmake.exe \
+      -G "MSYS Makefiles" \
       -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
       "${_extra_config[@]}" \
       -DCMAKE_PREFIX_PATH="${MINGW_PREFIX}" \
       -DDEFAULT_INSTALL_PATH="${MINGW_PREFIX}" \
       -DwxWidgets_CONFIG_EXECUTABLE="${MINGW_PREFIX}"/bin/wx-config-${_wx_basever} \
       -DOCC_INCLUDE_DIR="${MINGW_PREFIX}"/include/opencascade \
-      -DKICAD_SCRIPTING_WXPYTHON=ON \
       -DKICAD_BUILD_I18N=ON \
-      -DKICAD_BUILD_QA_TESTS=OFF \
       -DPYTHON_EXECUTABLE="${MINGW_PREFIX}"/bin/python.exe \
       -DPYTHON_INCLUDE_DIR=$("${MINGW_PREFIX}"/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
       -DPYTHON_ROOT_DIR="${MINGW_PREFIX}" \
