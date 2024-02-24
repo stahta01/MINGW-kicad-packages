@@ -13,6 +13,7 @@ pkgbase=mingw-w64-${_realname}${_basepkgver}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}")
 pkgver=${_basepkgver}.11
 pkgrel=1
+_sourcedir=${_realname}-${pkgver}
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
 mingw_arch=('mingw64' 'ucrt64' 'clang64' 'mingw32' 'clang32')
@@ -62,7 +63,6 @@ source=(
   '006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch'
   '007-ki-6.0-manifest-remove-win10-11-manifest-support.patch'
   '012-ki-7.0-Set-StockEDALibraryPath-to-share-kicad7.0.patch'
-  '015-under-ucrt64-define-JSON_SCHEMA_NO_REGEX-1.patch'
 )
 sha256sums=('24feb0747ee8d767c903fac5254c314a5012f4aee7016e961da845765764cf73'
             'a7c41a4f9e04926f0103dbe6702e42681ed1e59ceadca1ec116a8af081597a2a'
@@ -70,8 +70,7 @@ sha256sums=('24feb0747ee8d767c903fac5254c314a5012f4aee7016e961da845765764cf73'
             'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
             'e03dbb58409145c8fb54991d8259f14bc0ba6b21abca24f9b914ec354c9df89c'
             '550397b8d2ba66b924933020e409e868d3e4b2352a235f329798bc631b9fd28f'
-            'c6e31774e70435e389b92e4e0a69757d4aaa4b884bdf2d756cdfaa97c196bda2'
-            '263632b211ef9646e49d3e7083bbe4cefe0c7064db7caac248aecae5541cc544')
+            'c6e31774e70435e389b92e4e0a69757d4aaa4b884bdf2d756cdfaa97c196bda2')
 
 # Helper macros to help make tasks easier #
 apply_patch_with_msg() {
@@ -83,7 +82,7 @@ apply_patch_with_msg() {
 }
 
 prepare() {
-  cd ${_realname}-${pkgver}
+  cd ${srcdir}/${_sourcedir}
   # https://gitlab.com/kicad/code/kicad/-/commit/aa3e2988
   apply_patch_with_msg \
     001-Kicad-manager-build-the-PLUGIN_CONTENT_MANAGER-only-on-request.patch
@@ -97,14 +96,13 @@ prepare() {
   apply_patch_with_msg 007-ki-6.0-manifest-remove-win10-11-manifest-support.patch
 
   # 012 Change StockEDALibraryPath to use MINGW_COMMON_PACKAGE_PREFIX packages
-  # 015 Hack to work around UCRT64 locking when PCM is started.
-  # 015 also breaks CLANG builds use of PCM
   apply_patch_with_msg \
-    012-ki-7.0-Set-StockEDALibraryPath-to-share-kicad7.0.patch # \
-    #015-under-ucrt64-define-JSON_SCHEMA_NO_REGEX-1.patch
+    012-ki-7.0-Set-StockEDALibraryPath-to-share-kicad7.0.patch
 }
 
 build() {
+  cd "${srcdir}"
+  msg2 "Build kicad"
   [[ -d build-${MSYSTEM} ]] && rm -rf build-${MSYSTEM}
   mkdir -p "${srcdir}"/build-${MSYSTEM} && cd "${srcdir}"/build-${MSYSTEM}
 
@@ -127,25 +125,25 @@ build() {
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=;DCMAKE_PREFIX_PATH=;DEFAULT_INSTALL_PATH=" \
     "${MINGW_PREFIX}"/bin/cmake.exe \
       -G "MSYS Makefiles" \
-      -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
+      -DCMAKE_PREFIX_PATH=${MINGW_PREFIX} \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
       "${_extra_config[@]}" \
-      -DCMAKE_PREFIX_PATH="${MINGW_PREFIX}" \
-      -DDEFAULT_INSTALL_PATH="${MINGW_PREFIX}" \
+      -DDEFAULT_INSTALL_PATH=${MINGW_PREFIX} \
       -DwxWidgets_CONFIG_EXECUTABLE="${MINGW_PREFIX}"/bin/wx-config-${_wx_basever} \
       -DOCC_INCLUDE_DIR="${MINGW_PREFIX}"/include/opencascade \
-      -DKICAD_BUILD_I18N=ON \
       -DPYTHON_EXECUTABLE="${MINGW_PREFIX}"/bin/python.exe \
       -DPYTHON_INCLUDE_DIR=$("${MINGW_PREFIX}"/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
       -DPYTHON_ROOT_DIR="${MINGW_PREFIX}" \
-      ../${_realname}-${pkgver}
+      -DKICAD_BUILD_I18N=ON \
+      ../${_sourcedir}
 
-  "${MINGW_PREFIX}"/bin/cmake.exe --build .
+  make || make VERBOSE=1 --jobs=1
 }
 
 package() {
   cd "${srcdir}/build-${MSYSTEM}"
   DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install .
 
-  install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE.README" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.README"
-  install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE.GPLv3" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.GPLv3"
+  install -Dm644 "${srcdir}/${_sourcedir}/LICENSE.README" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.README"
+  install -Dm644 "${srcdir}/${_sourcedir}/LICENSE.GPLv3" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.GPLv3"
 }
