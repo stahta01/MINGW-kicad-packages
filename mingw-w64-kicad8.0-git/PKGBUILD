@@ -26,7 +26,6 @@ mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
 url="https://www.kicad.org/"
 license=("GPLv3+")
 groups=("${MINGW_PACKAGE_PREFIX}-eda")
-options=('!strip' '!debug')
 conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}" "${MINGW_PACKAGE_PREFIX}-${_realname}-git")
 provides=("${MINGW_PACKAGE_PREFIX}-${_realname}" "${MINGW_PACKAGE_PREFIX}-${_realname}-git") 
 depends=(
