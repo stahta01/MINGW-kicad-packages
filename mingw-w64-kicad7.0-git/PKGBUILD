@@ -15,7 +15,7 @@ else
 fi
 pkgbase=mingw-w64-${_realname}${_basepkgver}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-git")
-pkgver=7.0.11.r0.gf67945aae9
+pkgver=7.0.11.r4.g28e433cc54
 pkgrel=1
 _sourcedir=${_realname}-git
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
@@ -67,8 +67,8 @@ source=(
   '007-ki-6.0-manifest-remove-win10-11-manifest-support.patch'
   '012-ki-7.0-Set-StockEDALibraryPath-to-share-kicad7.0.patch'
 #  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#commit=${_git_commit}"
-#  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#branch=7.0"
-  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#tag=7.0.11"
+  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#branch=7.0"
+#  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#tag=7.0.11"
 )
 sha256sums=('a7c41a4f9e04926f0103dbe6702e42681ed1e59ceadca1ec116a8af081597a2a'
             '2924a86849c02aecd21cded0bd2069353fca33c3364f9b41f9bfdd80e19085cf'
@@ -163,12 +163,20 @@ build() {
   make || make VERBOSE=1 --jobs=1
 }
 
-package_kicad7.0-git() {
+_package_kicad() {
   cd "${srcdir}/build-${MSYSTEM}"
   DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install . # --parallel 1 --verbose
 
   install -Dm644 "${srcdir}/${_sourcedir}/LICENSE.README" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.README"
   install -Dm644 "${srcdir}/${_sourcedir}/LICENSE.GPLv3" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.GPLv3"
+}
+
+package_kicad7.0-debug-git() {
+  _package_kicad
+}
+
+package_kicad7.0-git() {
+  _package_kicad
 }
 
 # template start; name=mingw-w64-splitpkg-wrappers; version=1.0;
