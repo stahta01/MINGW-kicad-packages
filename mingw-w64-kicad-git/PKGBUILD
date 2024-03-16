@@ -1,0 +1,178 @@
+# Maintainer: Tim Stahlhut <stahta01@gmail.com>
+
+# NOTE: MINGW32 has Segmentation fault during build; related to protobuf
+# NOTE: CLANG64 and CLANG32 is currently not building
+
+_realname=kicad
+_wx_basever=3.2
+_sourcedir=${_realname}-git
+pkgbase=mingw-w64-${_realname}-git
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git")
+pkgver=8.99.0.r1802.g77eb197a21
+pkgrel=1
+pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
+arch=(any)
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+url="https://www.kicad.org/"
+license=("GPLv3+")
+groups=("${MINGW_PACKAGE_PREFIX}-eda")
+options=('!strip' '!debug')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-boost"
+  "${MINGW_PACKAGE_PREFIX}-curl"
+  "${MINGW_PACKAGE_PREFIX}-fmt"
+  "${MINGW_PACKAGE_PREFIX}-glew"
+  "${MINGW_PACKAGE_PREFIX}-glm"
+  "${MINGW_PACKAGE_PREFIX}-libgit2"
+  "${MINGW_PACKAGE_PREFIX}-ngspice"
+  "${MINGW_PACKAGE_PREFIX}-python"
+  $([[ "$MSYSTEM_CARCH" != "i686" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxPython")
+  "${MINGW_PACKAGE_PREFIX}-wxwidgets${_wx_basever}-msw-libs"
+  "${MINGW_PACKAGE_PREFIX}-openssl"
+  "${MINGW_PACKAGE_PREFIX}-freeglut"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+  "${MINGW_PACKAGE_PREFIX}-opencascade"
+  "${MINGW_PACKAGE_PREFIX}-cairo"
+)
+makedepends=(
+  'git' 'make' 'patch'
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-doxygen"
+  "${MINGW_PACKAGE_PREFIX}-pkg-config"
+  "${MINGW_PACKAGE_PREFIX}-swig"
+  "${MINGW_PACKAGE_PREFIX}-wxwidgets${_wx_basever}-msw"
+  "${MINGW_PACKAGE_PREFIX}-protobuf"
+)
+optdepends=()
+_doc=("ca" "de" "en" "es" "fr" "id" "it" "ja" "nl" "pl" "ru" "zh")
+for _doclang in ${_doc[@]}; do
+  optdepends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-doc-${_doclang}: for documentation (${_doclang})");
+done
+#_git_commit='2604854221677261ad115c5c0f00f3f10b9296ef' # 7.99.0.r3676.g2604854221
+source=(
+  '002-ki-7.0-cmake-fixes-for-MINGW-CLANG.patch'
+  '003-ki-6.0-code-fixes-for-GNUC-CLANG.patch'
+  '005-clang-fmt-workaround.patch'
+  '006-ki-7.99-rewrite-kiwin32_rc_for_clang.patch'
+  '007-ki-7.99-manifest-remove-win10-11-manifest-support.patch'
+  '012-ki-8.0-Set-StockEDALibraryPath-to-share-kicad8.0.patch'
+  '015-ki-7.0-under-ucrt64-define-JSON_SCHEMA_NO_REGEX.patch'
+  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git"
+  #"${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#commit=${_git_commit}"
+)
+sha256sums=('4276daa4de876f2a8f990c3d2177a2ccf8e7c647567764b9ad1a3fae01740275'
+            'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
+            'bc7ad66d81d56dcfc237dfffe31fff58addff98622f65f64c45df11f70088c37'
+            'ae205637669fd2a6fac080b2614b44c42054eb52bd5a4cbe39366b92878f7144'
+            'bcaedbd7ffb328e4030fb2353fac875d04b1554c8b4ff4bf9539dcfc2ce33304'
+            '047016b91315429098476ac23da7fe4789c46b31325e6b3536acddb88357b42b'
+            '8d2ba1ba9099ce1cfac9d628d80c9baa234b4d4b1dd7e980d3a6ddf15c05fa4c'
+            'SKIP')
+# =========================================== #
+# Helper macros to help make tasks easier     #
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    if patch --dry-run -Rbp1 -i "${srcdir}/${_patch}" > /dev/null 2>&1 ; then
+      msg2 "Skipping ${_patch} because it likely was already applied"
+    else
+      msg2 "Applying ${_patch}"
+      patch -Nbp1 -i "${srcdir}/${_patch}"
+    fi
+  done
+}
+
+pkgver() {
+  cd ${srcdir}/${_sourcedir}
+  ( set -o pipefail
+    _version1=$( head -n 200 cmake/KiCadVersion.cmake | grep 'KICAD_SEMANTIC_VERSION "' | sed -e 's/KICAD_SEMANTIC_VERSION//' | sed -e 's/-unknown//' | sed -e 's/set//' | tr -d '() "' )
+    _version2=$( echo ${_version1} | tr -d '-' )
+    _revcount1=$(git rev-list --count $(git log -1 --format=%H -- cmake/KiCadVersion.cmake)..HEAD)
+    printf "%s.r%s.g%s" "${_version2}" ${_revcount1} $(git rev-parse --short HEAD)
+  )
+}
+
+prepare() {
+  cd ${srcdir}/${_sourcedir}
+
+  # The next four patch files are needed to get CLANG64/32 to build
+  patch -Np1 -i "${srcdir}"/002-ki-7.0-cmake-fixes-for-MINGW-CLANG.patch
+  patch -Np1 -i "${srcdir}"/003-ki-6.0-code-fixes-for-GNUC-CLANG.patch
+  patch -Np1 -i "${srcdir}"/005-clang-fmt-workaround.patch
+  patch -Np1 -i "${srcdir}"/006-ki-7.99-rewrite-kiwin32_rc_for_clang.patch
+  # This patch allows me to test program using my old Intel GPU driver under win10
+  patch -Np1 -i "${srcdir}"/007-ki-7.99-manifest-remove-win10-11-manifest-support.patch
+  # This patch changes library search location
+  patch -Np1 -i "${srcdir}"/012-ki-8.0-Set-StockEDALibraryPath-to-share-kicad8.0.patch
+  # Changes run-time lockup into warning/error when running "Plugin and Content Manager" (PCM)
+  #patch -Np1 -i "${srcdir}"/015-ki-7.0-under-ucrt64-define-JSON_SCHEMA_NO_REGEX.patch
+}
+
+build() {
+  cd "${srcdir}"
+  msg2 "Build kicad"
+  [[ -d build-${MSYSTEM} ]] && rm -rf build-${MSYSTEM}
+  mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
+
+  local -a extra_config
+  if check_option "debug" "n"; then
+    _extra_config+=("-DCMAKE_BUILD_TYPE=Release")
+    _extra_config+=("-DKICAD_BUILD_QA_TESTS=OFF")
+  else
+    _extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
+    _extra_config+=("-DKICAD_BUILD_QA_TESTS=ON")
+  fi
+
+  if [[ "$MSYSTEM_CARCH" == "i686" ]]; then
+    extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=OFF )
+  else
+    extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=ON )
+  fi
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=;DCMAKE_PREFIX_PATH=;DEFAULT_INSTALL_PATH=" \
+  ${MINGW_PREFIX}/bin/cmake.exe \
+    -G "MSYS Makefiles" \
+    -DCMAKE_PREFIX_PATH=${MINGW_PREFIX} \
+    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+    "${extra_config[@]}" \
+    -DDEFAULT_INSTALL_PATH=${MINGW_PREFIX} \
+    -DwxWidgets_CONFIG_EXECUTABLE=${MINGW_PREFIX}/bin/wx-config-${_wx_basever} \
+    -DOCC_INCLUDE_DIR=${MINGW_PREFIX}/include/opencascade \
+    -DKICAD_INSTALL_DEMOS="$( [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]] && echo "OFF" || echo "ON" )" \
+    -DPYTHON_EXECUTABLE=${MINGW_PREFIX}/bin/python.exe \
+    -DPYTHON_INCLUDE_DIR=$(${MINGW_PREFIX}/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
+    -DPYTHON_ROOT_DIR=${MINGW_PREFIX} \
+    -DKICAD_BUILD_I18N=ON \
+    ../${_sourcedir}
+
+  cd ${srcdir}/build-${MSYSTEM}
+  make VERBOSE=1 --jobs=1 # || make VERBOSE=1 --jobs=1
+}
+
+_package_kicad() {
+  cd "${srcdir}/build-${MSYSTEM}"
+  DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install . # --verbose
+
+  install -Dm644 "${srcdir}/${_sourcedir}/LICENSE.README" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.README"
+  install -Dm644 "${srcdir}/${_sourcedir}/LICENSE.GPLv3" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.GPLv3"
+}
+
+package_kicad-debug-git() {
+  _package_kicad
+}
+
+package_kicad-git() {
+  _package_kicad
+}
+
+# template start; name=mingw-w64-splitpkg-wrappers; version=1.0;
+# vim: set ft=bash :
+
+# generate wrappers
+for _name in "${pkgname[@]}"; do
+  _short="package_${_name#${MINGW_PACKAGE_PREFIX}-}"
+  _func="$(declare -f "${_short}")"
+  eval "${_func/#${_short}/package_${_name}}"
+done
+# template end;

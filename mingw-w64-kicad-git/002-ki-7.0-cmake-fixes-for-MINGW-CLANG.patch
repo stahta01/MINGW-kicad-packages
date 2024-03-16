@@ -1,0 +1,43 @@
+From d0d67dd8cdadcf9facba5ff52f53c84af92feb0e Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Thu, 2 Nov 2023 21:52:50 -0400
+Subject: cmake fixes for MINGW CLANG
+
+---
+ 3d-viewer/3d_cache/sg/CMakeLists.txt | 4 ++--
+ utils/idftools/CMakeLists.txt        | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/3d-viewer/3d_cache/sg/CMakeLists.txt b/3d-viewer/3d_cache/sg/CMakeLists.txt
+index 0899a1925b..ec49de117f 100644
+--- a/3d-viewer/3d_cache/sg/CMakeLists.txt
++++ b/3d-viewer/3d_cache/sg/CMakeLists.txt
+@@ -29,9 +29,9 @@ set( SG_FILES
+     ifsg_api.cpp
+ )
+ 
+-if( MINGW )
++if( MINGW AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+     list( APPEND SG_FILES ${CMAKE_SOURCE_DIR}/common/streamwrapper.cpp )
+-endif( MINGW )
++endif()
+ 
+ add_library( kicad_3dsg SHARED ${SG_FILES} )
+ 
+diff --git a/utils/idftools/CMakeLists.txt b/utils/idftools/CMakeLists.txt
+index c6dbff6dfa..f25dbbea39 100644
+--- a/utils/idftools/CMakeLists.txt
++++ b/utils/idftools/CMakeLists.txt
+@@ -13,9 +13,9 @@ set( IDF3_FILES
+     vrml_layer.cpp
+ )
+ 
+-if( MINGW )
++if( MINGW AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+     list( APPEND IDF3_FILES ${CMAKE_SOURCE_DIR}/common/streamwrapper.cpp )
+-endif( MINGW )
++endif()
+ 
+ add_library( idf3 STATIC ${IDF3_FILES} )
+ target_link_libraries( idf3
+-- 
