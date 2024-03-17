@@ -19,7 +19,7 @@ fi
 pkgbase=mingw-w64-${_realname}${_basepkgver}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-git")
 pkgver=8.0.1.r0.gac408046cf
-pkgrel=1
+pkgrel=2
 _sourcedir=${_realname}-git
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
@@ -32,9 +32,10 @@ provides=("${MINGW_PACKAGE_PREFIX}-${_realname}" "${MINGW_PACKAGE_PREFIX}-${_rea
 depends=(
   "${MINGW_PACKAGE_PREFIX}-boost"
   "${MINGW_PACKAGE_PREFIX}-curl"
-  "${MINGW_PACKAGE_PREFIX}-libgit2"
+  "${MINGW_PACKAGE_PREFIX}-fmt"
   "${MINGW_PACKAGE_PREFIX}-glew"
   "${MINGW_PACKAGE_PREFIX}-glm"
+  "${MINGW_PACKAGE_PREFIX}-libgit2"
   "${MINGW_PACKAGE_PREFIX}-ngspice"
   "${MINGW_PACKAGE_PREFIX}-python"
   "${MINGW_PACKAGE_PREFIX}-wxPython"
@@ -64,6 +65,7 @@ optdepends+=("${MINGW_COMMON_PACKAGE_PREFIX}-${_realname}${_basepkgver}-library-
 source=(
   '002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch'
   '003-ki-6.0-code-fixes-for-GNUC-CLANG.patch'
+  '005-clang-fmt-workaround.patch'
   '006-ki-7.99-rewrite-kiwin32_rc_for_clang.patch'
   '007-ki-7.99-manifest-remove-win10-11-manifest-support.patch'
   '012-ki-8.0-Set-StockEDALibraryPath-to-share-kicad8.0.patch'
@@ -75,6 +77,7 @@ source=(
 )
 sha256sums=('2924a86849c02aecd21cded0bd2069353fca33c3364f9b41f9bfdd80e19085cf'
             'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
+            'bc7ad66d81d56dcfc237dfffe31fff58addff98622f65f64c45df11f70088c37'
             'ae205637669fd2a6fac080b2614b44c42054eb52bd5a4cbe39366b92878f7144'
             'bcaedbd7ffb328e4030fb2353fac875d04b1554c8b4ff4bf9539dcfc2ce33304'
             '17ab4f4f66d232d40eea038cddd7ad3b4ac46cf58e3bc40e1d90bad619f1ac65'
@@ -113,8 +116,8 @@ prepare() {
   apply_patch_with_msg \
     002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch \
     003-ki-6.0-code-fixes-for-GNUC-CLANG.patch \
-    006-ki-7.99-rewrite-kiwin32_rc_for_clang.patch \
-    013-ki-7.99-clang-fmt-Remove-an-ostream-hack-incompatible-with-libc-17.patch
+    005-clang-fmt-workaround.patch \
+    006-ki-7.99-rewrite-kiwin32_rc_for_clang.patch
 
   ## This patch allows me to test view 3D program using my old Intel GPU driver under win10
   apply_patch_with_msg 007-ki-7.99-manifest-remove-win10-11-manifest-support.patch
