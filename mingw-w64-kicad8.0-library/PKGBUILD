@@ -14,7 +14,7 @@ _basepkgname=${_realname}${_basepkgver}
 _sharefoldername=${_realname}${_basepkgver}
 pkgbase=mingw-w64-${_realname}${_basepkgver}-library
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-library")
-pkgver=8.0.0
+pkgver=8.0.1
 pkgrel=1
 pkgdesc="Symbol, footprint and template libraries for KiCad ${_basepkgver} (mingw-common)"
 arch=('any')
@@ -27,9 +27,9 @@ options=('!strip')
 source=("https://gitlab.com/kicad/libraries/kicad-footprints/-/archive/${pkgver}/kicad-footprints-${pkgver}.tar.bz2"
         "https://gitlab.com/kicad/libraries/kicad-symbols/-/archive/${pkgver}/kicad-symbols-${pkgver}.tar.bz2"
         "https://gitlab.com/kicad/libraries/kicad-templates/-/archive/${pkgver}/kicad-templates-${pkgver}.tar.bz2")
-sha256sums=('f5cbc76694de98c620a52dfaa65c5426b6374c3b18f104e6320bf622dc52b927'
-            '258a04b64477c1a99b1ef00fe41ef986aa64966638ee2c25d3f75f3b4cddcbf2'
-            '8d0f1ad8ef1d8faeb46549783d69e51c15048ab3622fa408ae48febf71984d97')
+sha256sums=('2457dccca2bd97971be1dcc1045f20ca2804c938dc523905d4eaa15d75cd4228'
+            'f6cad087b889285aeebdc80cb6ab1b1fe65cc08e653663d4aab5f3d749816796'
+            '23df1665ccdd9b9a753313d93e2e1088da2e53fc97fb7210bf7f551973b01efe')
 
 build() {
   for _s in "footprints" "symbols" "templates"; do
