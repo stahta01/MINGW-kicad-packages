@@ -15,7 +15,7 @@ else
 fi
 pkgbase=mingw-w64-${_realname}${_basepkgver}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-git")
-pkgver=7.0.11.r4.g28e433cc54
+pkgver=7.0.11.r12.gc90d9b7ebe
 pkgrel=1
 _sourcedir=${_realname}-git
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
@@ -137,6 +137,9 @@ build() {
     _extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
     _extra_config+=("-DKICAD_BUILD_QA_TESTS=ON")
   fi
+
+  echo "CFLAGS := $CFLAGS"
+  echo "CXXFLAGS := $CXXFLAGS"
 
   if [[ "$MSYSTEM_CARCH" == "i686" ]]; then
     extra_config+=( -DKICAD_SPICE=OFF )
