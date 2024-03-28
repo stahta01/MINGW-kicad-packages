@@ -1,0 +1,23 @@
+From 9c90dfde285b5cad7d045bef15c79c43b31211a5 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sun, 23 Jun 2024 08:49:00 -0400
+Subject: Replace "${CURL_LIBRARIES}" with "CURL::libcurl"
+
+---
+ common/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common/CMakeLists.txt b/common/CMakeLists.txt
+index bf6f92fba1..f3506a2c70 100644
+--- a/common/CMakeLists.txt
++++ b/common/CMakeLists.txt
+@@ -491,7 +491,7 @@ target_link_libraries( common
+     pcm_settings
+     nanodbc # for now; maybe hoist out of common
+     ${Boost_LIBRARIES}
+-    ${CURL_LIBRARIES}
++    CURL::libcurl
+     ${wxWidgets_LIBRARIES}
+     ${EXTRA_LIBS}
+     # outline font support
+-- 
