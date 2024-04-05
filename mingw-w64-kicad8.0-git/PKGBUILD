@@ -18,8 +18,8 @@ else
 fi
 pkgbase=mingw-w64-${_realname}${_basepkgver}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-git")
-pkgver=8.0.1.r0.gac408046cf
-pkgrel=2
+pkgver=8.0.3.r94.gd319cd4b89
+pkgrel=1
 _sourcedir=${_realname}-git
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
@@ -72,8 +72,8 @@ source=(
   '013-ki-7.99-clang-fmt-Remove-an-ostream-hack-incompatible-with-libc-17.patch'
   '015-ki-7.0-under-ucrt64-define-JSON_SCHEMA_NO_REGEX.patch'
 #  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#commit=${_git_commit}"
-#  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#branch=${_basepkgver}"
-  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#tag=8.0.1"
+  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#branch=${_basepkgver}"
+#  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#tag=8.0.1"
 )
 sha256sums=('2924a86849c02aecd21cded0bd2069353fca33c3364f9b41f9bfdd80e19085cf'
             'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
