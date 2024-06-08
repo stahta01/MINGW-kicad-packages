@@ -10,7 +10,7 @@ _sourcedir=${_realname}-git
 pkgbase=mingw-w64-${_realname}${_basepkgver}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-git")
 pkgver=6.0.11.r7.g2bc8c0ace5
-pkgrel=1
+pkgrel=2
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
@@ -57,15 +57,19 @@ source=(
   '006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch'
   '007-ki-6.0-manifest-remove-win10-11-manifest-support.patch'
   '012-ki-6.0-Set-StockEDALibraryPath-to-share-kicad6.0.patch'
+  '013-ki-6.0-cmake-fixes-for-CLANG-warnings.patch'
+  '022-Replace-CURL_LIBRARIES-with-CURL-libcurl.patch'
 #  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#commit=${_git_commit}"
   "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#branch=${_basepkgver}"
 #  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#tag=6.0.11"
 )
-sha256sums=('2924a86849c02aecd21cded0bd2069353fca33c3364f9b41f9bfdd80e19085cf'
+sha256sums=('70eb00dea79f78c02fda26c8b51ac0ae06499f360b43d043c72b6e7bf9cd0972'
             'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
             'e03dbb58409145c8fb54991d8259f14bc0ba6b21abca24f9b914ec354c9df89c'
             '550397b8d2ba66b924933020e409e868d3e4b2352a235f329798bc631b9fd28f'
             'e9d62ba01c092f9b535ff75a47bcc130b47069fe0713683cfe6bab4ad24427e5'
+            'df162f93dce413d66836c35d31b05c59c288dd44c8f16b4f764279a3f53b552a'
+            '316fcaec3cbdef5f66d0c79a325fdf6fc823891ceb8e0fa808b79cffefd0ed1f'
             'SKIP')
 _doc=("ca" "de" "en" "es" "fr" "id" "it" "ja" "nl" "pl" "ru" "zh")
 
@@ -100,7 +104,8 @@ prepare() {
   apply_patch_with_msg \
     002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch \
     003-ki-6.0-code-fixes-for-GNUC-CLANG.patch \
-    006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch
+    006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch \
+    013-ki-6.0-cmake-fixes-for-CLANG-warnings.patch
 
   # This patch allows me to test view 3D program using my old Intel GPU driver under win10
   apply_patch_with_msg 007-ki-6.0-manifest-remove-win10-11-manifest-support.patch
@@ -108,6 +113,9 @@ prepare() {
   # 012 Change StockEDALibraryPath to use MINGW_COMMON_PACKAGE_PREFIX packages
   apply_patch_with_msg \
     012-ki-6.0-Set-StockEDALibraryPath-to-share-kicad6.0.patch
+
+  apply_patch_with_msg \
+    022-Replace-CURL_LIBRARIES-with-CURL-libcurl.patch
 }
 
 build() {
@@ -143,8 +151,6 @@ build() {
     -DDEFAULT_INSTALL_PATH=${MINGW_PREFIX} \
     -DwxWidgets_CONFIG_EXECUTABLE=${MINGW_PREFIX}/bin/wx-config-${_wx_basever} \
     -DKICAD_USE_OCC="$( [[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] && echo "OFF" || echo "ON" )" \
-    -DKICAD_SCRIPTING=ON \
-    -DKICAD_SCRIPTING_PYTHON3=ON \
     -DKICAD_BUILD_QA_TESTS=OFF \
     -DPYTHON_EXECUTABLE=${MINGW_PREFIX}/bin/python.exe \
     -DPYTHON_INCLUDE_DIR=$(${MINGW_PREFIX}/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
@@ -153,7 +159,7 @@ build() {
     ../${_sourcedir}
 
   cd ${srcdir}/build-${MSYSTEM}
-  make || make VERBOSE=1 --jobs=1
+  make # || make VERBOSE=1 --jobs=1
 }
 
 package_kicad6.0-git() {
