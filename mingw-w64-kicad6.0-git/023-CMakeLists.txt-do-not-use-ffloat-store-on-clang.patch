@@ -1,0 +1,45 @@
+From 1891e2ad68acb51f2154619e802c8d3d053dd1d6 Mon Sep 17 00:00:00 2001
+From: Christoph Moench-Tegeder <cmt@burggraben.net>
+Date: Tue, 21 Feb 2023 20:45:27 +0100
+Subject: [PATCH] CMakeLists.txt: do not use -ffloat-store on clang
+
+According to it's User Manual, clang does not know about -ffloat-store.
+This is corrobated by the FreeBSD i386 build (using LLVM 13 and 15,
+depending on the base system version) failing early with an error
+message complaining about this parameter being unknown.
+
+See
+https://pkg-status.freebsd.org/beefy17/data/main-i386-default/pb27279cba1ca_sed03776ca7/logs/kicad-7.0.0,2.log
+for an example of the failure, and
+https://clang.llvm.org/docs/UsersManual.html#controlling-floating-point-behavior
+for the available floating point options on clang.
+
+(Cherry-picked from 46a59aa2c3e23aa5dd5243e697eb29f8da680e03)
+---
+ CMakeLists.txt | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7b47135b3e..1007d38de5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -350,12 +350,16 @@ endif(USE_DISTCC)
+ # Set flags for GCC, or treat llvm as GCC
+ #================================================
+ 
+-if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+-
++if( CMAKE_COMPILER_IS_GNUCXX )
+     # Set 32-bit flag for GCC to prevent excess precision
++    # clang des not know this flag, so keep this separate
+     if( CMAKE_SIZEOF_VOID_P EQUAL 4 )
+         set( CMAKE_CXX_FLAGS "-ffloat-store ${CMAKE_CXX_FLAGS}" )
+     endif()
++endif( CMAKE_COMPILER_IS_GNUCXX )
++
++
++if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+ 
+     # Link flags in Debug: -g1 and -ggdb1 or -g1 and -ggdb3 can be used.
+     # Level 1 produces minimal information, enough for making basic backtraces.
+-- 
