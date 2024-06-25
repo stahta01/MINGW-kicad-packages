@@ -1,18 +1,17 @@
 # Maintainer:  Tim Stahlhut
 # Contributor: Alexey Pavlov
 
-# NOTE: 32 bit packages are currently not building
-
 MINGW_COMMON_PACKAGE_PREFIX="mingw-common"
 
 _realname=kicad
 _basepkgver=7.0
 _basepkgname=${_realname}${_basepkgver}
 _wx_basever=3.2
+options=('!strip' '!debug')
 pkgbase=mingw-w64-${_realname}${_basepkgver}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}")
 pkgver=${_basepkgver}.11
-pkgrel=1
+pkgrel=2
 _sourcedir=${_realname}-${pkgver}
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
@@ -63,6 +62,8 @@ source=(
   '006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch'
   '007-ki-6.0-manifest-remove-win10-11-manifest-support.patch'
   '012-ki-7.0-Set-StockEDALibraryPath-to-share-kicad7.0.patch'
+  '021-gcc-14-fix-clipper2-CMakeLists.txt.patch'
+  '022-Replace-CURL_LIBRARIES-with-CURL-libcurl.patch'
 )
 sha256sums=('24feb0747ee8d767c903fac5254c314a5012f4aee7016e961da845765764cf73'
             'a7c41a4f9e04926f0103dbe6702e42681ed1e59ceadca1ec116a8af081597a2a'
@@ -70,7 +71,9 @@ sha256sums=('24feb0747ee8d767c903fac5254c314a5012f4aee7016e961da845765764cf73'
             'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
             'e03dbb58409145c8fb54991d8259f14bc0ba6b21abca24f9b914ec354c9df89c'
             '550397b8d2ba66b924933020e409e868d3e4b2352a235f329798bc631b9fd28f'
-            'c6e31774e70435e389b92e4e0a69757d4aaa4b884bdf2d756cdfaa97c196bda2')
+            'c6e31774e70435e389b92e4e0a69757d4aaa4b884bdf2d756cdfaa97c196bda2'
+            '052e0812479d34649451d8307d9f12a1cf815c80f2de0b0132468db14197a1b0'
+            '316fcaec3cbdef5f66d0c79a325fdf6fc823891ceb8e0fa808b79cffefd0ed1f')
 
 # Helper macros to help make tasks easier #
 apply_patch_with_msg() {
@@ -98,15 +101,20 @@ prepare() {
   # 012 Change StockEDALibraryPath to use MINGW_COMMON_PACKAGE_PREFIX packages
   apply_patch_with_msg \
     012-ki-7.0-Set-StockEDALibraryPath-to-share-kicad7.0.patch
+
+  # 02x patches are manual backports of fixes from 8.0 branch
+  apply_patch_with_msg \
+    021-gcc-14-fix-clipper2-CMakeLists.txt.patch \
+    022-Replace-CURL_LIBRARIES-with-CURL-libcurl.patch
 }
 
 build() {
   cd "${srcdir}"
   msg2 "Build kicad"
   [[ -d build-${MSYSTEM} ]] && rm -rf build-${MSYSTEM}
-  mkdir -p "${srcdir}"/build-${MSYSTEM} && cd "${srcdir}"/build-${MSYSTEM}
+  mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
 
-  declare -a _extra_config
+  local -a extra_config
   if check_option "debug" "n"; then
     _extra_config+=("-DCMAKE_BUILD_TYPE=Release")
     _extra_config+=("-DKICAD_BUILD_QA_TESTS=OFF")
@@ -114,6 +122,9 @@ build() {
     _extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
     _extra_config+=("-DKICAD_BUILD_QA_TESTS=ON")
   fi
+
+  #echo "CFLAGS := $CFLAGS"
+  #echo "CXXFLAGS := $CXXFLAGS"
 
   if [[ "$MSYSTEM_CARCH" == "i686" ]]; then
     extra_config+=( -DKICAD_SPICE=OFF )
@@ -123,21 +134,21 @@ build() {
   fi
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=;DCMAKE_PREFIX_PATH=;DEFAULT_INSTALL_PATH=" \
-    "${MINGW_PREFIX}"/bin/cmake.exe \
+    ${MINGW_PREFIX}/bin/cmake.exe \
       -G "MSYS Makefiles" \
       -DCMAKE_PREFIX_PATH=${MINGW_PREFIX} \
       -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-      "${_extra_config[@]}" \
+      "${extra_config[@]}" \
       -DDEFAULT_INSTALL_PATH=${MINGW_PREFIX} \
-      -DwxWidgets_CONFIG_EXECUTABLE="${MINGW_PREFIX}"/bin/wx-config-${_wx_basever} \
-      -DOCC_INCLUDE_DIR="${MINGW_PREFIX}"/include/opencascade \
-      -DPYTHON_EXECUTABLE="${MINGW_PREFIX}"/bin/python.exe \
-      -DPYTHON_INCLUDE_DIR=$("${MINGW_PREFIX}"/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
-      -DPYTHON_ROOT_DIR="${MINGW_PREFIX}" \
+      -DwxWidgets_CONFIG_EXECUTABLE=${MINGW_PREFIX}/bin/wx-config-${_wx_basever} \
+      -DOCC_INCLUDE_DIR=${MINGW_PREFIX}/include/opencascade \
+      -DPYTHON_EXECUTABLE=${MINGW_PREFIX}/bin/python.exe \
+      -DPYTHON_INCLUDE_DIR=$(${MINGW_PREFIX}/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
+      -DPYTHON_ROOT_DIR=${MINGW_PREFIX} \
       -DKICAD_BUILD_I18N=ON \
       ../${_sourcedir}
 
-  make || make VERBOSE=1 --jobs=1
+  make # || make VERBOSE=1 --jobs=1
 }
 
 package() {

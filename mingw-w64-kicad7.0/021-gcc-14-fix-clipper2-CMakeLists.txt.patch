@@ -1,0 +1,23 @@
+From 9738c11794559838170105a7c6fa564e998e21fa Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sun, 12 May 2024 11:31:15 -0400
+Subject: Edit clipper2/CMakeLists.txt
+
+---
+ thirdparty/clipper2/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/thirdparty/clipper2/CMakeLists.txt b/thirdparty/clipper2/CMakeLists.txt
+index 918acccb12..7d40cb4d6d 100644
+--- a/thirdparty/clipper2/CMakeLists.txt
++++ b/thirdparty/clipper2/CMakeLists.txt
+@@ -27,7 +27,7 @@ target_compile_definitions(clipper2 PUBLIC USINGZ)
+ if (MSVC)
+   target_compile_options(clipper2 PRIVATE /W4 /WX)
+ else()
+-  target_compile_options(clipper2 PRIVATE -Wall -Wextra -Wpedantic -Werror)
++  target_compile_options(clipper2 PRIVATE -Wall -Wextra -Wpedantic)
+   target_link_libraries(clipper2 PUBLIC -lm)
+ endif()
+ 
+-- 
