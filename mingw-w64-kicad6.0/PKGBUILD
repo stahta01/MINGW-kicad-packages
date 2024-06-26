@@ -65,7 +65,7 @@ source=(
   '023-CMakeLists.txt-do-not-use-ffloat-store-on-clang.patch'
 )
 sha256sums=('f2b7ad72942c7e154bebb06d4e6d9fd7ea765f679edafb25b059b387860fbe5d'
-            '2924a86849c02aecd21cded0bd2069353fca33c3364f9b41f9bfdd80e19085cf'
+            '70eb00dea79f78c02fda26c8b51ac0ae06499f360b43d043c72b6e7bf9cd0972'
             'd8d5f4bdd0aa6d8a907710c523f6f95840636cb2ef69e5275c6ed4966f134353'
             'e03dbb58409145c8fb54991d8259f14bc0ba6b21abca24f9b914ec354c9df89c'
             '550397b8d2ba66b924933020e409e868d3e4b2352a235f329798bc631b9fd28f'
