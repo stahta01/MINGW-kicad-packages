@@ -1,6 +1,5 @@
 # Maintainer: Tim Stahlhut
 
-# NOTE: 32 bit packages are currently not building
 # CLANG64 PCB Editor does not work when _debug_mode=yes
 
 MINGW_COMMON_PACKAGE_PREFIX="mingw-common"
@@ -18,7 +17,7 @@ else
 fi
 pkgbase=mingw-w64-${_realname}${_basepkgver}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-git")
-pkgver=8.0.3.r94.gd319cd4b89
+pkgver=8.0.4.r3.gee573a1480
 pkgrel=1
 _sourcedir=${_realname}-git
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
@@ -38,7 +37,7 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-libgit2"
   "${MINGW_PACKAGE_PREFIX}-ngspice"
   "${MINGW_PACKAGE_PREFIX}-python"
-  "${MINGW_PACKAGE_PREFIX}-wxPython"
+  $([[ "$MSYSTEM_CARCH" != "i686" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxPython")
   "${MINGW_PACKAGE_PREFIX}-wxwidgets${_wx_basever}-msw-libs"
   "${MINGW_PACKAGE_PREFIX}-openssl"
   "${MINGW_PACKAGE_PREFIX}-freeglut"
@@ -63,13 +62,12 @@ for _doclang in ${_doc[@]}; do
 done
 optdepends+=("${MINGW_COMMON_PACKAGE_PREFIX}-${_realname}${_basepkgver}-library-3d: for 3D model libraries")
 source=(
-  '002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch'
+  '002-ki-7.0-cmake-fixes-for-MINGW-CLANG.patch'
   '003-ki-6.0-code-fixes-for-GNUC-CLANG.patch'
   '005-clang-fmt-workaround.patch'
   '006-ki-7.99-rewrite-kiwin32_rc_for_clang.patch'
   '007-ki-7.99-manifest-remove-win10-11-manifest-support.patch'
   '012-ki-8.0-Set-StockEDALibraryPath-to-share-kicad8.0.patch'
-  '013-ki-7.99-clang-fmt-Remove-an-ostream-hack-incompatible-with-libc-17.patch'
   '015-ki-7.0-under-ucrt64-define-JSON_SCHEMA_NO_REGEX.patch'
 #  "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#commit=${_git_commit}"
   "${_sourcedir}"::"git+https://github.com/KiCad/kicad-source-mirror.git#branch=${_basepkgver}"
@@ -81,7 +79,6 @@ sha256sums=('2924a86849c02aecd21cded0bd2069353fca33c3364f9b41f9bfdd80e19085cf'
             'ae205637669fd2a6fac080b2614b44c42054eb52bd5a4cbe39366b92878f7144'
             'bcaedbd7ffb328e4030fb2353fac875d04b1554c8b4ff4bf9539dcfc2ce33304'
             '17ab4f4f66d232d40eea038cddd7ad3b4ac46cf58e3bc40e1d90bad619f1ac65'
-            'f76c30ea94a7a6747bb5b3177beedfd40e9f3912de5248e41d86e7b868375438'
             '8d2ba1ba9099ce1cfac9d628d80c9baa234b4d4b1dd7e980d3a6ddf15c05fa4c'
             'SKIP')
 _doc=("ca" "de" "en" "es" "fr" "id" "it" "ja" "nl" "pl" "ru" "zh")
@@ -114,7 +111,7 @@ prepare() {
   cd ${srcdir}/${_sourcedir}
 
   apply_patch_with_msg \
-    002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch \
+    002-ki-7.0-cmake-fixes-for-MINGW-CLANG.patch \
     003-ki-6.0-code-fixes-for-GNUC-CLANG.patch \
     005-clang-fmt-workaround.patch \
     006-ki-7.99-rewrite-kiwin32_rc_for_clang.patch
@@ -145,6 +142,12 @@ build() {
     _extra_config+=("-DKICAD_BUILD_QA_TESTS=ON")
   fi
 
+  if [[ "$MSYSTEM_CARCH" == "i686" ]]; then
+    extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=OFF )
+  else
+    extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=ON )
+  fi
+
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=;DCMAKE_PREFIX_PATH=;DEFAULT_INSTALL_PATH=" \
   ${MINGW_PREFIX}/bin/cmake.exe \
     -G "MSYS Makefiles" \
@@ -155,7 +158,6 @@ build() {
     -DwxWidgets_CONFIG_EXECUTABLE=${MINGW_PREFIX}/bin/wx-config-${_wx_basever} \
     -DOCC_INCLUDE_DIR=${MINGW_PREFIX}/include/opencascade \
     -DKICAD_INSTALL_DEMOS="$( [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]] && echo "OFF" || echo "ON" )" \
-    -DKICAD_SCRIPTING_WXPYTHON=ON \
     -DPYTHON_EXECUTABLE=${MINGW_PREFIX}/bin/python.exe \
     -DPYTHON_INCLUDE_DIR=$(${MINGW_PREFIX}/bin/python.exe -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])") \
     -DPYTHON_ROOT_DIR=${MINGW_PREFIX} \
