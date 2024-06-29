@@ -11,7 +11,7 @@ options=('!strip' '!debug')
 pkgbase=mingw-w64-${_realname}${_basepkgver}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}")
 pkgver=${_basepkgver}.11
-pkgrel=2
+pkgrel=3
 _sourcedir=${_realname}-${pkgver}
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
@@ -57,7 +57,7 @@ optdepends+=("${MINGW_COMMON_PACKAGE_PREFIX}-${_basepkgname}-library-3d: for 3D 
 source=(
   "https://gitlab.com/kicad/code/kicad/-/archive/${pkgver}/kicad-${pkgver}.tar.bz2"
   '001-Kicad-manager-build-the-PLUGIN_CONTENT_MANAGER-only-on-request.patch'
-  '002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch'
+  '002-ki-7.0-cmake-fixes-for-MINGW-CLANG.patch'
   '003-ki-6.0-code-fixes-for-GNUC-CLANG.patch'
   '006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch'
   '007-ki-6.0-manifest-remove-win10-11-manifest-support.patch'
@@ -91,7 +91,7 @@ prepare() {
     001-Kicad-manager-build-the-PLUGIN_CONTENT_MANAGER-only-on-request.patch
 
   apply_patch_with_msg \
-    002-ki-6.0-cmake-fixes-for-MINGW-CLANG.patch \
+    002-ki-7.0-cmake-fixes-for-MINGW-CLANG.patch \
     003-ki-6.0-code-fixes-for-GNUC-CLANG.patch \
     006-ki-6.0-rewrite-kiwin32_rc_for_clang.patch
 
