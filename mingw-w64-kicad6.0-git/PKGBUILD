@@ -10,7 +10,7 @@ _sourcedir=${_realname}-git
 pkgbase=mingw-w64-${_realname}${_basepkgver}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-git")
 pkgver=6.0.11.r7.g2bc8c0ace5
-pkgrel=3
+pkgrel=4
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
 arch=(any)
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
@@ -25,7 +25,7 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-curl"
   "${MINGW_PACKAGE_PREFIX}-glew"
   "${MINGW_PACKAGE_PREFIX}-glm"
-  $([[ "$MSYSTEM_CARCH" != "i686" ]] && echo "${MINGW_PACKAGE_PREFIX}-ngspice")
+  "${MINGW_PACKAGE_PREFIX}-ngspice"
   "${MINGW_PACKAGE_PREFIX}-python"
   $([[ "$MSYSTEM_CARCH" != "i686" ]] && echo "${MINGW_PACKAGE_PREFIX}-wxPython")
   "${MINGW_PACKAGE_PREFIX}-wxwidgets${_wx_basever}-msw-libs"
@@ -136,7 +136,6 @@ build() {
   fi
 
   if [[ "$MSYSTEM_CARCH" == "i686" ]]; then
-    extra_config+=( -DKICAD_SPICE=OFF )
     extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=OFF )
   else
     extra_config+=( -DKICAD_SCRIPTING_WXPYTHON=ON )
