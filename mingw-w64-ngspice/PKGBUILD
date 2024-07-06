@@ -1,0 +1,109 @@
+# Maintainer: Maciej Suminski <maciej.suminski@cern.ch>
+# Contributor: Unai Martinez-Corral <unai.martinezcorral@ehu.eus>
+
+_realname=ngspice
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=42
+pkgrel=1
+pkgdesc="Mixed-level/Mixed-signal circuit simulator based on Spice3f5, Cider1b1, and Xspice (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url='https://ngspice.sourceforge.io/'
+msys2_references=(
+  'archlinux: ngspice'
+)
+msys2_repository_url='https://sourceforge.net/p/ngspice/ngspice/ci/master/tree/'
+msys2_documentation_url='https://ngspice.sourceforge.io/docs.html'
+msys2_issue_tracker_url='https://sourceforge.net/p/ngspice/bugs/'
+license=('spdx:BSD-3-Clause')
+groups=("${MINGW_PACKAGE_PREFIX}-eda")
+conflicts=(${MINGW_PACKAGE_PREFIX}-${_realname}-git)
+replaces=(${MINGW_PACKAGE_PREFIX}-${_realname}-git)
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-fftw"
+  "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+  "${MINGW_PACKAGE_PREFIX}-omp"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-autotools"
+)
+install="${_realname}-${MSYSTEM}.install"
+source=(
+  "https://downloads.sourceforge.net/project/${_realname}/ng-spice-rework/${pkgver}/${_realname}-${pkgver}.tar.gz"
+  "https://downloads.sourceforge.net/project/${_realname}/ng-spice-rework/${pkgver}/${_realname}-doc-${pkgver}.tar.gz"
+  "no-explicit-lstdc++.patch"
+  '001-Replace-__MINGW64__-with-__MINGW32__.patch'
+)
+sha256sums=('737fe3846ab2333a250dfadf1ed6ebe1860af1d8a5ff5e7803c772cc4256e50a'
+            'bb971b1553d2ab19a9188f00fa14eb84b24bff6d1fbe0a7e16ffa1147ce6a9a4'
+            '57f0f6e79faead15b0e1338a32c414b851997edb716467e8c0bc9a10df423582'
+            '958c0b6239243ad459f4aef2d7272678b2d6c8b9fa243e68433ff8085a2bc824')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  patch -Np1 -i "${srcdir}/no-explicit-lstdc++.patch"
+  patch -Np1 -i "${srcdir}/001-Replace-__MINGW64__-with-__MINGW32__.patch"
+  autoreconf -fiv
+}
+
+build() {
+  mkdir -p "${srcdir}/build-shared-${MSYSTEM}" && cd "${srcdir}/build-shared-${MSYSTEM}"
+
+  local -a _common_flags=(
+    --prefix=${MINGW_PREFIX}
+    --build=${MINGW_CHOST}
+    --host=${MINGW_CHOST}
+    --disable-debug
+    --enable-openmp
+    --enable-xspice
+    --enable-cider
+  )
+
+  # FS#45230, create so lib
+  # shared lib sets flags and modifies headers, needs dedicated pass
+  # adding --with-readline disables libngspice-0.dll
+  if [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]]; then
+    LDFLAGS+=" -lomp"
+  fi
+  ../${_realname}-${pkgver}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    "${_common_flags[@]}" \
+    --with-ngshared
+  make
+
+  mkdir -p "${srcdir}/build-static-${MSYSTEM}" && cd "${srcdir}/build-static-${MSYSTEM}"
+
+  # gcc is being weird
+  LDFLAGS+=" -lgdi32"
+  ../${_realname}-${pkgver}/configure \
+    "${_common_flags[@]}" \
+    --with-wingui
+  make
+
+  mkdir -p "${srcdir}/build-console-${MSYSTEM}" && cd "${srcdir}/build-console-${MSYSTEM}"
+
+  LDFLAGS+=" -lgdi32"
+  ../${_realname}-${pkgver}/configure \
+    "${_common_flags[@]}"
+  make
+}
+
+package() {
+  cd "${srcdir}/build-console-${MSYSTEM}"
+  make DESTDIR="${pkgdir}" install
+
+  # Rename the console version of ngspice before installing others
+  mv "${pkgdir}${MINGW_PREFIX}"/bin/{ngspice,ngspice_con}.exe
+
+  cd "${srcdir}/build-static-${MSYSTEM}"
+  make DESTDIR="${pkgdir}" install
+
+  cd "${srcdir}/build-shared-${MSYSTEM}"
+  make DESTDIR="${pkgdir}" install
+
+  install -Dm644 "${srcdir}/${_realname}-${pkgver}/COPYING" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+}

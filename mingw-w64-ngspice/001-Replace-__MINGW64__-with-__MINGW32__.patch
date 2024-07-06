@@ -1,0 +1,104 @@
+From 1305679de136a2d535a1498e4ff765433e694c20 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sat, 6 Jul 2024 14:17:24 -0400
+Subject: Replace "__MINGW64__" with "__MINGW32__"
+
+---
+ src/xspice/icm/digital/d_process/cfunc.mod | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/src/xspice/icm/digital/d_process/cfunc.mod b/src/xspice/icm/digital/d_process/cfunc.mod
+index 22ae17cae..f0bac0a44 100644
+--- a/src/xspice/icm/digital/d_process/cfunc.mod
++++ b/src/xspice/icm/digital/d_process/cfunc.mod
+@@ -131,7 +131,7 @@ typedef struct {
+     Digital_State_t dout_old[256];  // max possible storage to track output changes
+ } Process_t;
+ 
+-#if defined(_MSC_VER) || defined(__MINGW64__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+ #include <io.h>
+ static int w_start(char *system_command, const char *const *argv, Process_t * process);
+ static void w_cleanup_child_process(Process_t *process);
+@@ -156,7 +156,7 @@ static int sendheader(Process_t * process, int N_din, int N_dout)
+         return 1;
+     }
+ 
+-#if defined(_MSC_VER) || defined(__MINGW64__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+     if (_write(process->pipe_to_child, &header, sizeof(header)) == -1) {
+ #else
+     if (write(process->pipe_to_child, &header, sizeof(header)) == -1) {
+@@ -166,7 +166,7 @@ static int sendheader(Process_t * process, int N_din, int N_dout)
+     }
+ 
+     // Wait for echo which must return the same header to ack transfer
+-#if defined(_MSC_VER) || defined(__MINGW64__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+     if (_read(process->pipe_from_child, &header, sizeof(header)) != sizeof(header)) {
+ #else
+     if (read(process->pipe_from_child, &header, sizeof(header)) != sizeof(header)) {
+@@ -215,7 +215,7 @@ static int dprocess_exchangedata(Process_t * process, double time, uint8_t din[]
+         packet.din[0] = 0;
+     }
+ 
+-#if defined(_MSC_VER) || defined(__MINGW64__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+     wlen = _write(process->pipe_to_child, &packet, sizeof(double) + process->N_din);
+ #else
+     wlen = write(process->pipe_to_child, &packet, sizeof(double) + process->N_din);
+@@ -225,7 +225,7 @@ static int dprocess_exchangedata(Process_t * process, double time, uint8_t din[]
+         return 1;
+     }
+ 
+-#if defined(_MSC_VER) || defined(__MINGW64__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+     if (_read(process->pipe_from_child, dout, process->N_dout) != process->N_dout) {
+ #else
+     if (read(process->pipe_from_child, dout, process->N_dout) != process->N_dout) {
+@@ -239,7 +239,7 @@ static int dprocess_exchangedata(Process_t * process, double time, uint8_t din[]
+ }
+ 
+ 
+-#if !defined(_MSC_VER) && !defined(__MINGW64__)
++#if !defined(_MSC_VER) && !defined(__MINGW32__)
+ static int start(char *system_command, char * c_argv[], Process_t * process)
+ {
+     int pipe_to_child[2];
+@@ -311,7 +311,7 @@ static void cm_d_process_callback(ARGS, Mif_Callback_Reason_t reason)
+         case MIF_CB_DESTROY: {
+             Process_t *proc = STATIC_VAR(process);
+             if (proc) {
+-#if defined(_MSC_VER) || defined(__MINGW64__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+                 w_cleanup_child_process(proc);
+ #endif
+                 free(proc);
+@@ -366,7 +366,7 @@ void cm_d_process(ARGS)
+         c_argv[c_argc] = NULL;
+ #undef C_ARGV_SIZE
+ 
+-#if defined(_MSC_VER) || defined(__MINGW64__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+         err = w_start(c_argv[0], (const char *const *)c_argv, local_process);
+ #else
+         err = start(c_argv[0], c_argv, local_process);
+@@ -435,7 +435,7 @@ void cm_d_process(ARGS)
+                 switch(INPUT_STATE(in[i])) {
+                     case ZERO: b = 0; break;
+                     case ONE:  b = 1; break;
+-#if defined(_MSC_VER) || defined(__MINGW64__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+                     default:   b = rand() & 1; break;
+ #else
+                     default:   b = random() & 1; break;
+@@ -470,7 +470,7 @@ void cm_d_process(ARGS)
+     }
+ }
+ 
+-#if defined(_MSC_VER) || defined(__MINGW64__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+ 
+ #undef BYTE
+ #undef BOOLEAN
+-- 
