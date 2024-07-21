@@ -1,0 +1,24 @@
+From 0d5d174fc6ab70bfe8269a037c5f13acffe53571 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sun, 21 Jul 2024 08:06:06 -0400
+Subject: Add <mutex> include
+
+---
+ common/kicad_curl/kicad_curl.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/common/kicad_curl/kicad_curl.cpp b/common/kicad_curl/kicad_curl.cpp
+index f9255cf750..0b9e00851e 100644
+--- a/common/kicad_curl/kicad_curl.cpp
++++ b/common/kicad_curl/kicad_curl.cpp
+@@ -28,6 +28,7 @@
+ #include <kicad_curl/kicad_curl.h>
+ 
+ #include <ki_exception.h>   // THROW_IO_ERROR
++#include <mutex>            // std::unique_lock
+ 
+ 
+ static std::shared_mutex s_curlMutex;
+-- 
+2.45.2.windows.1
+

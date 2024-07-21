@@ -1,0 +1,27 @@
+From 58331cd3bb4570107910290efcbbdfdbd6466e86 Mon Sep 17 00:00:00 2001
+From: Tim Stahlhut <stahta01@gmail.com>
+Date: Sun, 21 Jul 2024 10:00:33 -0400
+Subject: Global setting: Use C++20
+
+---
+ CMakeLists.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9be7e27058..b16b428cd7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -254,8 +254,8 @@ set( CMAKE_VISIBILITY_INLINES_HIDDEN ON )
+ # Global setting: build everything position independent
+ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
+ 
+-# Global setting: Use C++17
+-set(CMAKE_CXX_STANDARD 17)
++# Global setting: Use C++20
++set(CMAKE_CXX_STANDARD 20)
+ set(CMAKE_CXX_EXTENSIONS OFF)
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ 
+-- 
+2.45.2.windows.1
+
