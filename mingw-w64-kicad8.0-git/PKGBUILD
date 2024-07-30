@@ -17,7 +17,7 @@ else
 fi
 pkgbase=mingw-w64-${_realname}${_basepkgver}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_basepkgname}-git")
-pkgver=8.0.4.r55.g396e531e7c
+pkgver=8.0.4.r58.gc5b2e859c1
 pkgrel=1
 _sourcedir=${_realname}-git
 pkgdesc="Software for the creation of electronic schematic diagrams and printed circuit board artwork (mingw-w64)"
